@@ -104,6 +104,7 @@ PART_NAMES = {
     "drzak_serva": "Držák serva",
     "voditko_tahu": "Vodítko tahu (bowden)",
     "krytka_konektoru": "Krytka konektoru",
+    "sestava": "Kompletní sestava RC letadla",
 }
 
 VIEW_NAMES = {
@@ -294,13 +295,22 @@ def main():
     for group_id, group_info in groups.items():
         title = group_info["title"]
         model_names = group_info["models"]
-        all_models.extend(model_names)
 
         pdf_path = output_dir / f"rc_letadlo_{group_id}.pdf"
-        generate_pdf(pdf_path, title, f"Skupina: {title}",
-                     model_names, renders_dir, view_names)
 
-    # Souhrnný PDF se všemi díly
+        if group_id == "sestava":
+            # Samostatný přehledový PDF sesazeného modelu – není součástí
+            # skupinových katalogů ani souhrnného katalogu dílů.
+            generate_pdf(pdf_path,
+                         "RC Letadlo – Kompletní sestava",
+                         "Pohledy na sesazený model ze všech stran",
+                         model_names, renders_dir, view_names)
+        else:
+            all_models.extend(model_names)
+            generate_pdf(pdf_path, title, f"Skupina: {title}",
+                         model_names, renders_dir, view_names)
+
+    # Souhrnný PDF se všemi díly (bez přehledu sestavy)
     pdf_all = output_dir / "rc_letadlo_komplet.pdf"
     generate_pdf(pdf_all, "RC Letadlo", "Kompletní katalog 3D dílů",
                  all_models, renders_dir, view_names)

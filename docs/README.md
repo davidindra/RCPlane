@@ -54,6 +54,7 @@ Jsou dostupné ke stažení na GitHub Pages:
 
 | Skupina | PDF |
 |---|---|
+| **Přehled sestavy** | [rc_letadlo_sestava.pdf](models/pdf/rc_letadlo_sestava.pdf) |
 | **Kompletní katalog** | [rc_letadlo_komplet.pdf](models/pdf/rc_letadlo_komplet.pdf) |
 | Trup | [rc_letadlo_trup.pdf](models/pdf/rc_letadlo_trup.pdf) |
 | Křídlo | [rc_letadlo_kridlo.pdf](models/pdf/rc_letadlo_kridlo.pdf) |

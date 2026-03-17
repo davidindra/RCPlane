@@ -35,6 +35,9 @@ jobs:
       - name: Copy viewer into site
         run: cp -r viewer site/viewer
 
+      - name: Copy models into site
+        run: cp -r models site/models
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

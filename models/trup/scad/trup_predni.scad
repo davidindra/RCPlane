@@ -25,26 +25,26 @@ module predni_trup() {
         translate([delka - 1, 0, 0])
             rotate([0, 90, 0])
                 cylinder(d=45, h=10);
-        // Ventilacni otvory po stranach
-        for (y = [-1, 1]) {
+        // Ventilacni otvory po stranach (boky trupu = osa Z)
+        for (z = [-1, 1]) {
             for (i = [0:3]) {
-                translate([80 + i*50, y * (sirka_max/2 - 5), 0])
-                    rotate([90, 0, 0])
-                        hull() {
+                translate([80 + i*50, 0, z * (sirka_max/2 - 5)])
+                    hull() {
+                        cylinder(d=6, h=10, center=true);
+                        translate([20, 0, 0])
                             cylinder(d=6, h=10, center=true);
-                            translate([20, 0, 0])
-                                cylinder(d=6, h=10, center=true);
-                        }
+                    }
             }
         }
     }
     // Dovetail spojka na zadnim konci
     translate([delka - 5, 0, 0])
         dovetail_male();
-    // Vyztuzne zebro a uchyty pro karbonove tyce – oriznuty na skutecny obrys trupu,
-    // aby nepresahovaly pres zuzujici se predni cast (jinak vznika artefakt kruhu ve vieweru)
+    // Vyztuzne zebro a uchyty pro karbonove tyce – oriznuty na vnitrni dutinu trupu.
+    // intersection() s hull_predni_VNITRNI zajisti, ze zadna hrana zebra nelezi
+    // na VNEJSIM povrchu trupu (coz by zpusobilo viditelne kruhove artefakty ve vieweru).
     intersection() {
-        hull_predni_vnejsi();
+        hull_predni_vnitrni();
         union() {
             // Vyztuzne zebro uvnitr
             translate([delka/2, 0, 0])

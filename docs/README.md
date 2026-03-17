@@ -45,6 +45,21 @@ Tato složka obsahuje kompletní dokumentaci k projektu fixed-wing dronu.
 
 Interaktivní 3D prohlížeč modelů je k dispozici v [/viewer/index.html](viewer/index.html).
 
+## 3D Modely a PDF katalogy
+
+Veškeré STL soubory jsou dostupné v adresáři [/models/](../models/).
+
+PDF katalogy s vyrenderovanými pohledy na jednotlivé díly:
+
+| Skupina | PDF |
+|---|---|
+| Kompletní katalog | [rc_letadlo_komplet.pdf](../models/pdf/rc_letadlo_komplet.pdf) |
+| Trup | [rc_letadlo_trup.pdf](../models/pdf/rc_letadlo_trup.pdf) |
+| Křídlo | [rc_letadlo_kridlo.pdf](../models/pdf/rc_letadlo_kridlo.pdf) |
+| Ocasní plochy | [rc_letadlo_ocasni_plochy.pdf](../models/pdf/rc_letadlo_ocasni_plochy.pdf) |
+| Podvozek | [rc_letadlo_podvozek.pdf](../models/pdf/rc_letadlo_podvozek.pdf) |
+| Doplňky | [rc_letadlo_doplnky.pdf](../models/pdf/rc_letadlo_doplnky.pdf) |
+
 ## Specifikace dronu (souhrn)
 
 | Parametr | Hodnota |

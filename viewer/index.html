@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RCPlane - 3D Prohlížeč modelů</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -30,81 +26,141 @@
         }
 
         #sidebar h1 {
-            padding: 20px;
-            font-size: 1.3em;
+            padding: 16px 20px;
+            font-size: 1.1em;
             color: #e94560;
             border-bottom: 1px solid #0f3460;
+            flex-shrink: 0;
         }
 
-        #sidebar h2 {
-            padding: 15px 20px 5px;
-            font-size: 0.85em;
+        #sidebar-controls {
+            padding: 8px 12px;
+            border-bottom: 1px solid #0f3460;
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        #sidebar-controls button {
+            flex: 1;
+            background: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #1a4a8a;
+            padding: 5px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.78em;
+        }
+
+        #sidebar-controls button:hover { background: #1a4a8a; }
+
+        #load-progress {
+            padding: 6px 12px;
+            font-size: 0.75em;
             color: #888;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border-bottom: 1px solid #0f3460;
+            flex-shrink: 0;
+            min-height: 28px;
+        }
+
+        #load-progress .bar-wrap {
+            height: 3px;
+            background: #0f3460;
+            border-radius: 2px;
+            margin-top: 4px;
+        }
+
+        #load-progress .bar {
+            height: 3px;
+            background: #e94560;
+            border-radius: 2px;
+            transition: width 0.2s;
         }
 
         #file-list {
             flex: 1;
             overflow-y: auto;
-            padding: 10px 0;
+            padding: 6px 0;
         }
 
-        .file-category {
-            margin-bottom: 5px;
-        }
+        .file-category { margin-bottom: 2px; }
 
         .category-header {
-            padding: 8px 20px;
-            font-size: 0.9em;
+            padding: 7px 12px;
+            font-size: 0.85em;
             font-weight: 600;
-            color: #a0a0a0;
+            color: #c0c0c0;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
+            user-select: none;
         }
 
-        .category-header:hover {
-            background: rgba(233, 69, 96, 0.1);
+        .category-header:hover { background: rgba(233, 69, 96, 0.1); }
+
+        .cat-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
 
         .category-header .arrow {
+            font-size: 0.65em;
+            margin-left: auto;
             transition: transform 0.2s;
-            font-size: 0.7em;
         }
 
-        .category-header.collapsed .arrow {
-            transform: rotate(-90deg);
+        .category-header.collapsed .arrow { transform: rotate(-90deg); }
+
+        .cat-checkbox, .part-checkbox {
+            width: 13px;
+            height: 13px;
+            cursor: pointer;
+            accent-color: #e94560;
+            flex-shrink: 0;
         }
 
-        .category-items {
-            overflow: hidden;
-        }
-
-        .category-items.hidden {
-            display: none;
-        }
+        .category-items.hidden { display: none; }
 
         .file-item {
-            padding: 6px 20px 6px 40px;
-            font-size: 0.85em;
+            padding: 5px 12px 5px 28px;
+            font-size: 0.8em;
             cursor: pointer;
-            transition: background 0.15s;
-            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: background 0.1s;
+        }
+
+        .file-item:hover { background: rgba(233, 69, 96, 0.12); }
+        .file-item.active { background: rgba(233, 69, 96, 0.25); color: #e94560; }
+        .file-item.failed { color: #666; }
+
+        .part-name {
+            flex: 1;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .file-item:hover {
-            background: rgba(233, 69, 96, 0.15);
+        .load-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #333;
+            flex-shrink: 0;
         }
 
-        .file-item.active {
-            background: rgba(233, 69, 96, 0.3);
-            color: #e94560;
-            font-weight: 600;
+        .load-dot.ok { background: #44cc88; }
+        .load-dot.fail { background: #e94560; }
+        .load-dot.loading {
+            background: #888;
+            animation: pulse 0.8s infinite alternate;
         }
+
+        @keyframes pulse { to { opacity: 0.3; } }
 
         #viewer-container {
             flex: 1;
@@ -114,38 +170,38 @@
         }
 
         #toolbar {
-            padding: 10px 20px;
+            padding: 8px 16px;
             background: #16213e;
             border-bottom: 1px solid #0f3460;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
 
         #toolbar button {
             background: #0f3460;
             color: #e0e0e0;
             border: 1px solid #1a4a8a;
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.85em;
+            font-size: 0.82em;
             transition: background 0.15s;
         }
 
-        #toolbar button:hover {
-            background: #1a4a8a;
-        }
+        #toolbar button:hover { background: #1a4a8a; }
+        #toolbar button.active { background: #e94560; border-color: #e94560; }
 
-        #toolbar .separator {
+        #toolbar .sep {
             width: 1px;
-            height: 24px;
+            height: 20px;
             background: #0f3460;
         }
 
         #model-name {
-            font-size: 0.95em;
+            font-size: 0.85em;
             font-weight: 600;
             color: #e94560;
             margin-left: auto;
@@ -164,69 +220,20 @@
 
         #info-panel {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(22, 33, 62, 0.9);
-            padding: 15px;
-            border-radius: 8px;
+            bottom: 16px;
+            left: 16px;
+            background: rgba(22, 33, 62, 0.92);
+            padding: 12px 14px;
+            border-radius: 6px;
             border: 1px solid #0f3460;
-            font-size: 0.8em;
-            line-height: 1.6;
-        }
-
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
+            font-size: 0.78em;
+            line-height: 1.8;
             display: none;
-        }
-
-        #loading .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #0f3460;
-            border-top-color: #e94560;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        #placeholder {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #555;
-        }
-
-        #placeholder .icon {
-            font-size: 4em;
-            margin-bottom: 15px;
-        }
-
-        #placeholder p {
-            font-size: 1.1em;
-        }
-
-        #placeholder .hint {
-            font-size: 0.85em;
-            margin-top: 8px;
-            color: #444;
         }
 
         #drop-zone {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(233, 69, 96, 0.1);
             border: 3px dashed #e94560;
             display: none;
@@ -239,110 +246,132 @@
 
         #error-msg {
             position: absolute;
-            top: 20px;
+            top: 16px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(233, 69, 96, 0.9);
-            padding: 10px 20px;
+            padding: 8px 18px;
             border-radius: 6px;
             display: none;
             z-index: 50;
+            font-size: 0.85em;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #16213e;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #0f3460;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #1a4a8a;
-        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #16213e; }
+        ::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #1a4a8a; }
     </style>
 </head>
 <body>
     <div id="sidebar">
-        <h1>RCPlane 3D Viewer</h1>
-        <h2>Modely</h2>
-        <div id="file-list">
-            <p style="padding: 20px; color: #555; font-size: 0.85em;">
-                Načítám seznam modelů...
-            </p>
+        <h1>✈ RCPlane 3D Viewer</h1>
+        <div id="sidebar-controls">
+            <button id="btn-show-all">Zobrazit vše</button>
+            <button id="btn-hide-all">Skrýt vše</button>
         </div>
+        <div id="load-progress">
+            <span id="progress-text">Připravuji...</span>
+            <div class="bar-wrap"><div class="bar" id="progress-bar" style="width:0%"></div></div>
+        </div>
+        <div id="file-list"></div>
     </div>
 
     <div id="viewer-container">
         <div id="toolbar">
-            <button id="btn-reset" title="Resetovat pohled">Resetovat pohled</button>
-            <button id="btn-wireframe" title="Přepnout drátový model">Drátový model</button>
-            <button id="btn-normals" title="Zobrazit normály">Normály</button>
-            <div class="separator"></div>
-            <button id="btn-top" title="Pohled shora">Shora</button>
-            <button id="btn-front" title="Pohled zepředu">Zepředu</button>
-            <button id="btn-side" title="Pohled z boku">Z boku</button>
-            <span id="model-name"></span>
+            <button id="btn-reset">Reset pohledu</button>
+            <button id="btn-fit">Přizpůsobit</button>
+            <div class="sep"></div>
+            <button id="btn-wireframe">Drátový model</button>
+            <button id="btn-normals">Normály</button>
+            <div class="sep"></div>
+            <button id="btn-top">Shora</button>
+            <button id="btn-front">Zepředu</button>
+            <button id="btn-side">Z boku</button>
+            <span id="model-name">Sestava</span>
         </div>
 
         <div id="canvas-wrapper">
             <canvas id="viewer-canvas"></canvas>
-
-            <div id="placeholder">
-                <div class="icon">&#9992;</div>
-                <p>Vyberte model ze seznamu vlevo</p>
-                <p class="hint">nebo přetáhněte STL soubor do okna</p>
-            </div>
-
-            <div id="loading">
-                <div class="spinner"></div>
-                <p>Načítám model...</p>
-            </div>
-
-            <div id="drop-zone">
-                Přetáhněte STL soubor sem
-            </div>
-
+            <div id="drop-zone">Přetáhněte STL soubor sem</div>
             <div id="error-msg"></div>
-
-            <div id="info-panel" style="display: none;">
-                <div>Vrcholy: <span id="info-vertices">-</span></div>
+            <div id="info-panel">
+                <div>Zobrazeno dílů: <span id="info-parts">-</span></div>
                 <div>Trojúhelníky: <span id="info-triangles">-</span></div>
-                <div>Rozměry: <span id="info-dimensions">-</span></div>
+                <div id="info-part-detail" style="display:none; border-top:1px solid #0f3460; margin-top:6px; padding-top:6px;">
+                    <div>Vybraný díl: <span id="info-sel-name" style="color:#e94560">-</span></div>
+                    <div>Rozměry: <span id="info-sel-dim">-</span></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Three.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-    (function() {
+    (function () {
         'use strict';
 
-        // --- Configuration ---
+        // ── Configuration ────────────────────────────────────────────────────
         const MODELS_DIR = '../models/';
 
-        // --- State ---
-        let scene, camera, renderer, controls;
-        let currentMesh = null;
-        let isWireframe = false;
-        let showNormals = false;
-        let normalsHelper = null;
+        // Coordinate system: SCAD X = fore-aft (nose=0, tail=1400),
+        //                    SCAD Y = left-right (L=+), SCAD Z = up
+        // Used directly in Three.js with camera.up = (0,0,1)
 
-        // --- Model catalog (dynamically scanned or static fallback) ---
+        const CATEGORY_COLORS = {
+            'Trup':          0x2979ff,
+            'Křídlo':        0x00c853,
+            'Ocasní plochy': 0xff6d00,
+            'Podvozek':      0xd50000,
+            'Doplňky':       0xffd600,
+        };
+
+        // pos: [x, y, z] in SCAD coords
+        // rot: [rx, ry, rz] Euler angles applied to THREE mesh.rotation
+        const ASSEMBLY_OFFSETS = {
+            // Trup
+            'trup/trup_predni.stl':              { pos: [0,    0,    0]   },
+            'trup/trup_stredni.stl':             { pos: [350,  0,    0]   },
+            'trup/trup_zadni.stl':               { pos: [850,  0,    0]   },
+            'trup/nakladovy_prostor_dvirka.stl': { pos: [475,  0,   51]   },
+            'trup/kryt_elektroniky.stl':         { pos: [670,  0,   50]   },
+            // Křídlo – leading edge ≈X460, top of fuselage Z=50, dihedral 5°
+            'kridlo/kridlo_korenovy_dil_L.stl':  { pos: [460,   0,   50]  },
+            'kridlo/kridlo_korenovy_dil_P.stl':  { pos: [460,   0,   50]  },
+            'kridlo/kridlo_stredni_dil_L.stl':   { pos: [460,  350,  81]  },
+            'kridlo/kridlo_stredni_dil_P.stl':   { pos: [460, -350,  81]  },
+            'kridlo/kridlo_koncovy_dil_L.stl':   { pos: [460,  700, 112]  },
+            'kridlo/kridlo_koncovy_dil_P.stl':   { pos: [460, -700, 112]  },
+            'kridlo/zebro_korenove.stl':          { pos: [460,   0,   50]  },
+            'kridlo/zebro_stredni.stl':           { pos: [460,  350,  81]  },
+            'kridlo/zebro_koncove.stl':           { pos: [460,  700, 112]  },
+            'kridlo/uchyt_nosnik.stl':            { pos: [550,   0,   50]  },
+            // Ocasní plochy – VOP/SOP chord in X, span in Y, thickness in Z
+            // SOP has chord in Y direction → needs rotation.z = -PI/2 to align fore-aft
+            'ocasni_plochy/vop_leva.stl':          { pos: [1295, 0,  0]  },
+            'ocasni_plochy/vop_prava.stl':         { pos: [1295, 0,  0]  },
+            'ocasni_plochy/vyskove_kormidlo.stl':  { pos: [1385, 0,  0]  },
+            'ocasni_plochy/sop.stl':               { pos: [1220, 0, 20], rot: [0, 0, -Math.PI/2] },
+            'ocasni_plochy/smerove_kormidlo.stl':  { pos: [1328, 0, 20], rot: [0, 0, -Math.PI/2] },
+            // Podvozek
+            'podvozek/hlavni_noha_L.stl':  { pos: [550, 0, -170] },
+            'podvozek/hlavni_noha_P.stl':  { pos: [550, 0, -170] },
+            'podvozek/predni_vidlice.stl': { pos: [100, 0, -130] },
+            'podvozek/uchyt_podvozku.stl': { pos: [550, 0,  -50] },
+            // Doplňky
+            'doplnky/drzak_motoru.stl':     { pos: [  0,  0,  0] },
+            'doplnky/drzak_serva.stl':      { pos: [500, 40, 30] },
+            'doplnky/voditko_tahu.stl':     { pos: [900,  0,  0] },
+            'doplnky/krytka_konektoru.stl': { pos: [400,  0,  0] },
+        };
+
         const MODEL_CATALOG = {
             'Trup': [
                 'trup/trup_predni.stl',
                 'trup/trup_stredni.stl',
                 'trup/trup_zadni.stl',
                 'trup/nakladovy_prostor_dvirka.stl',
-                'trup/kryt_elektroniky.stl'
+                'trup/kryt_elektroniky.stl',
             ],
             'Křídlo': [
                 'kridlo/kridlo_korenovy_dil_L.stl',
@@ -354,30 +383,46 @@
                 'kridlo/zebro_korenove.stl',
                 'kridlo/zebro_stredni.stl',
                 'kridlo/zebro_koncove.stl',
-                'kridlo/uchyt_nosnik.stl'
+                'kridlo/uchyt_nosnik.stl',
             ],
             'Ocasní plochy': [
                 'ocasni_plochy/vop_leva.stl',
                 'ocasni_plochy/vop_prava.stl',
-                'ocasni_plochy/sop.stl',
                 'ocasni_plochy/vyskove_kormidlo.stl',
-                'ocasni_plochy/smerove_kormidlo.stl'
+                'ocasni_plochy/sop.stl',
+                'ocasni_plochy/smerove_kormidlo.stl',
             ],
             'Podvozek': [
                 'podvozek/hlavni_noha_L.stl',
                 'podvozek/hlavni_noha_P.stl',
                 'podvozek/predni_vidlice.stl',
-                'podvozek/uchyt_podvozku.stl'
+                'podvozek/uchyt_podvozku.stl',
             ],
             'Doplňky': [
                 'doplnky/drzak_motoru.stl',
                 'doplnky/drzak_serva.stl',
                 'doplnky/voditko_tahu.stl',
-                'doplnky/krytka_konektoru.stl'
-            ]
+                'doplnky/krytka_konektoru.stl',
+            ],
         };
 
-        // --- Init Three.js ---
+        // ── Scene state ──────────────────────────────────────────────────────
+        let scene, camera, renderer;
+        let isDragging = false;
+        let previousMouse = { x: 0, y: 0 };
+        // Z-up spherical: z = target.z + r*cos(phi), xy = r*sin(phi)*[cos,sin](theta)
+        let spherical = { theta: -0.8, phi: 1.1, radius: 2400 };
+        let target = new THREE.Vector3(700, 0, 50);
+
+        let partsState = {};   // filePath → { mesh, visible, loaded, failed, triCount, size }
+        let isWireframe = false;
+        let normalsHelpers = [];
+        let selectedPath = null;
+
+        let totalToLoad = 0;
+        let doneCount = 0;   // loaded + failed
+
+        // ── Three.js init ────────────────────────────────────────────────────
         function initViewer() {
             const canvas = document.getElementById('viewer-canvas');
             const wrapper = document.getElementById('canvas-wrapper');
@@ -385,42 +430,33 @@
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1a1a2e);
 
-            camera = new THREE.PerspectiveCamera(
-                45,
-                wrapper.clientWidth / wrapper.clientHeight,
-                0.1,
-                10000
-            );
-            camera.position.set(100, 80, 150);
+            camera = new THREE.PerspectiveCamera(45, wrapper.clientWidth / wrapper.clientHeight, 1, 20000);
+            camera.up.set(0, 0, 1);   // Z-up
 
             renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
             renderer.setSize(wrapper.clientWidth, wrapper.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
 
             // Lights
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-            scene.add(ambientLight);
+            scene.add(new THREE.AmbientLight(0x404040, 0.7));
+            const d1 = new THREE.DirectionalLight(0xffffff, 0.9);
+            d1.position.set(1, 0.5, 1);
+            scene.add(d1);
+            const d2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            d2.position.set(-1, -0.5, -1);
+            scene.add(d2);
 
-            const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight1.position.set(1, 1, 1);
-            scene.add(dirLight1);
-
-            const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
-            dirLight2.position.set(-1, -0.5, -1);
-            scene.add(dirLight2);
-
-            // Grid
-            const grid = new THREE.GridHelper(500, 50, 0x0f3460, 0x0a1a3a);
+            // Grid in XY plane (Z=0 ≈ fuselage belly / ground level)
+            const grid = new THREE.GridHelper(4000, 80, 0x0f3460, 0x0a1a3a);
+            grid.rotation.x = Math.PI / 2;   // XZ → XY plane
+            grid.position.z = -180;
             scene.add(grid);
 
-            // Axes
-            const axes = new THREE.AxesHelper(50);
+            const axes = new THREE.AxesHelper(150);
             scene.add(axes);
 
-            // Simple orbit controls (manual implementation)
             initOrbitControls(canvas);
 
-            // Resize
             window.addEventListener('resize', () => {
                 camera.aspect = wrapper.clientWidth / wrapper.clientHeight;
                 camera.updateProjectionMatrix();
@@ -430,36 +466,29 @@
             animate();
         }
 
-        // --- Simple orbit controls ---
-        let isDragging = false;
-        let previousMouse = { x: 0, y: 0 };
-        let spherical = { theta: Math.PI / 4, phi: Math.PI / 4, radius: 200 };
-        let target = new THREE.Vector3(0, 0, 0);
-
+        // ── Orbit controls (Z-up) ────────────────────────────────────────────
         function initOrbitControls(canvas) {
-            canvas.addEventListener('mousedown', (e) => {
+            canvas.addEventListener('mousedown', e => {
                 isDragging = true;
                 previousMouse = { x: e.clientX, y: e.clientY };
             });
 
-            canvas.addEventListener('mousemove', (e) => {
+            canvas.addEventListener('mousemove', e => {
                 if (!isDragging) return;
                 const dx = e.clientX - previousMouse.x;
                 const dy = e.clientY - previousMouse.y;
 
                 if (e.buttons === 1) {
-                    // Left button: rotate
                     spherical.theta -= dx * 0.005;
-                    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1,
-                        spherical.phi - dy * 0.005));
+                    spherical.phi = Math.max(0.05, Math.min(Math.PI - 0.05, spherical.phi - dy * 0.005));
                 } else if (e.buttons === 2 || e.buttons === 4) {
-                    // Right button or middle: pan
                     const panSpeed = spherical.radius * 0.001;
-                    const right = new THREE.Vector3();
-                    const up = new THREE.Vector3(0, 1, 0);
-                    right.crossVectors(camera.getWorldDirection(new THREE.Vector3()), up).normalize();
-                    target.add(right.multiplyScalar(-dx * panSpeed));
-                    target.y += dy * panSpeed;
+                    const camDir = new THREE.Vector3();
+                    camera.getWorldDirection(camDir);
+                    const right = new THREE.Vector3().crossVectors(camDir, camera.up).normalize();
+                    const screenUp = new THREE.Vector3().crossVectors(right, camDir).normalize();
+                    target.addScaledVector(right, -dx * panSpeed);
+                    target.addScaledVector(screenUp, dy * panSpeed);
                 }
 
                 previousMouse = { x: e.clientX, y: e.clientY };
@@ -468,23 +497,23 @@
 
             canvas.addEventListener('mouseup', () => { isDragging = false; });
             canvas.addEventListener('mouseleave', () => { isDragging = false; });
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
 
-            canvas.addEventListener('wheel', (e) => {
+            canvas.addEventListener('wheel', e => {
                 e.preventDefault();
                 spherical.radius *= e.deltaY > 0 ? 1.1 : 0.9;
-                spherical.radius = Math.max(10, Math.min(5000, spherical.radius));
+                spherical.radius = Math.max(50, Math.min(15000, spherical.radius));
                 updateCameraPosition();
             }, { passive: false });
-
-            canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
             updateCameraPosition();
         }
 
         function updateCameraPosition() {
+            // Z-up spherical
             camera.position.x = target.x + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
-            camera.position.y = target.y + spherical.radius * Math.cos(spherical.phi);
-            camera.position.z = target.z + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+            camera.position.y = target.y + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+            camera.position.z = target.z + spherical.radius * Math.cos(spherical.phi);
             camera.lookAt(target);
         }
 
@@ -493,225 +522,259 @@
             renderer.render(scene, camera);
         }
 
-        // --- STL Parser ---
+        // ── STL Parser ───────────────────────────────────────────────────────
         function parseSTL(buffer) {
-            const isAscii = isAsciiSTL(buffer);
-            if (isAscii) {
-                return parseAsciiSTL(buffer);
-            } else {
-                return parseBinarySTL(buffer);
-            }
-        }
-
-        function isAsciiSTL(buffer) {
             const str = new TextDecoder().decode(buffer.slice(0, 80));
-            return str.trimStart().startsWith('solid');
+            return str.trimStart().startsWith('solid') ? parseAsciiSTL(buffer) : parseBinarySTL(buffer);
         }
 
         function parseBinarySTL(buffer) {
             const view = new DataView(buffer);
-            const numTriangles = view.getUint32(80, true);
-            const vertices = new Float32Array(numTriangles * 9);
-            const normals = new Float32Array(numTriangles * 9);
-
-            let offset = 84;
-            for (let i = 0; i < numTriangles; i++) {
-                const nx = view.getFloat32(offset, true); offset += 4;
-                const ny = view.getFloat32(offset, true); offset += 4;
-                const nz = view.getFloat32(offset, true); offset += 4;
-
+            const n = view.getUint32(80, true);
+            const vertices = new Float32Array(n * 9);
+            const normals  = new Float32Array(n * 9);
+            let off = 84;
+            for (let i = 0; i < n; i++) {
+                const nx = view.getFloat32(off, true); off += 4;
+                const ny = view.getFloat32(off, true); off += 4;
+                const nz = view.getFloat32(off, true); off += 4;
                 for (let j = 0; j < 3; j++) {
                     const idx = i * 9 + j * 3;
-                    vertices[idx] = view.getFloat32(offset, true); offset += 4;
-                    vertices[idx + 1] = view.getFloat32(offset, true); offset += 4;
-                    vertices[idx + 2] = view.getFloat32(offset, true); offset += 4;
-                    normals[idx] = nx;
-                    normals[idx + 1] = ny;
-                    normals[idx + 2] = nz;
+                    vertices[idx]   = view.getFloat32(off, true); off += 4;
+                    vertices[idx+1] = view.getFloat32(off, true); off += 4;
+                    vertices[idx+2] = view.getFloat32(off, true); off += 4;
+                    normals[idx] = nx; normals[idx+1] = ny; normals[idx+2] = nz;
                 }
-                offset += 2; // attribute byte count
+                off += 2;
             }
-
-            return { vertices, normals, numTriangles };
+            return { vertices, normals, numTriangles: n };
         }
 
         function parseAsciiSTL(buffer) {
             const text = new TextDecoder().decode(buffer);
-            const vertexList = [];
-            const normalList = [];
-
-            const facetRegex = /facet\s+normal\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+outer\s+loop\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+endloop\s+endfacet/g;
-
-            let match;
-            while ((match = facetRegex.exec(text)) !== null) {
-                const nx = parseFloat(match[1]);
-                const ny = parseFloat(match[2]);
-                const nz = parseFloat(match[3]);
-
+            const vList = [], nList = [];
+            const re = /facet\s+normal\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+outer\s+loop\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+endloop\s+endfacet/g;
+            let m;
+            while ((m = re.exec(text)) !== null) {
+                const nx = +m[1], ny = +m[2], nz = +m[3];
                 for (let i = 0; i < 3; i++) {
-                    vertexList.push(
-                        parseFloat(match[4 + i * 3]),
-                        parseFloat(match[5 + i * 3]),
-                        parseFloat(match[6 + i * 3])
-                    );
-                    normalList.push(nx, ny, nz);
+                    vList.push(+m[4+i*3], +m[5+i*3], +m[6+i*3]);
+                    nList.push(nx, ny, nz);
                 }
             }
-
-            return {
-                vertices: new Float32Array(vertexList),
-                normals: new Float32Array(normalList),
-                numTriangles: vertexList.length / 9
-            };
+            return { vertices: new Float32Array(vList), normals: new Float32Array(nList), numTriangles: vList.length / 9 };
         }
 
-        // --- Load and display model ---
-        function loadModel(path, name) {
-            showLoading(true);
-            hideError();
-            document.getElementById('model-name').textContent = name;
-
-            fetch(path)
-                .then(response => {
-                    if (!response.ok) throw new Error(`Soubor nenalezen: ${path}`);
-                    return response.arrayBuffer();
-                })
-                .then(buffer => {
-                    displayModel(buffer, name);
-                    showLoading(false);
-                })
-                .catch(err => {
-                    showLoading(false);
-                    showError(`Chyba: ${err.message}`);
-                });
+        // ── Load & display assembly ──────────────────────────────────────────
+        function getCategoryForPath(filePath) {
+            for (const [cat, paths] of Object.entries(MODEL_CATALOG)) {
+                if (paths.includes(filePath)) return cat;
+            }
+            return 'Doplňky';
         }
 
-        function displayModel(buffer, name) {
-            // Remove old mesh
-            if (currentMesh) {
-                scene.remove(currentMesh);
-                currentMesh.geometry.dispose();
-                currentMesh.material.dispose();
-            }
-            if (normalsHelper) {
-                scene.remove(normalsHelper);
-                normalsHelper = null;
-            }
+        function getColorForPath(filePath) {
+            return CATEGORY_COLORS[getCategoryForPath(filePath)] || 0x888888;
+        }
 
+        function addAssemblyPart(filePath, buffer) {
             const { vertices, normals, numTriangles } = parseSTL(buffer);
 
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-            geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            geo.setAttribute('normal',   new THREE.BufferAttribute(normals,  3));
+            geo.computeBoundingBox();
 
-            const material = new THREE.MeshPhongMaterial({
-                color: 0x4488cc,
-                specular: 0x222222,
-                shininess: 40,
+            const color = getColorForPath(filePath);
+            const mat = new THREE.MeshPhongMaterial({
+                color,
+                specular: 0x111111,
+                shininess: 30,
                 wireframe: isWireframe,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
             });
 
-            currentMesh = new THREE.Mesh(geometry, material);
-            scene.add(currentMesh);
+            const mesh = new THREE.Mesh(geo, mat);
 
-            // Center and scale
-            geometry.computeBoundingBox();
-            const box = geometry.boundingBox;
+            // Apply assembly transform
+            const offset = ASSEMBLY_OFFSETS[filePath];
+            if (offset) {
+                if (offset.pos) mesh.position.set(offset.pos[0], offset.pos[1], offset.pos[2]);
+                if (offset.rot) mesh.rotation.set(offset.rot[0], offset.rot[1], offset.rot[2]);
+            }
+
+            scene.add(mesh);
+
+            const size = new THREE.Vector3();
+            geo.boundingBox.getSize(size);
+
+            partsState[filePath] = {
+                mesh,
+                visible: true,
+                loaded: true,
+                failed: false,
+                triCount: numTriangles,
+                size,
+            };
+
+            updateInfoPanel();
+            markDot(filePath, 'ok');
+        }
+
+        function startLoadingAll() {
+            const allPaths = Object.values(MODEL_CATALOG).flat();
+            totalToLoad = allPaths.length;
+            doneCount = 0;
+
+            // Init state
+            allPaths.forEach(p => {
+                partsState[p] = { mesh: null, visible: true, loaded: false, failed: false, triCount: 0, size: null };
+            });
+
+            updateProgress();
+
+            allPaths.forEach(filePath => {
+                markDot(filePath, 'loading');
+                fetch(MODELS_DIR + filePath)
+                    .then(r => {
+                        if (!r.ok) throw new Error('404');
+                        return r.arrayBuffer();
+                    })
+                    .then(buf => {
+                        addAssemblyPart(filePath, buf);
+                        doneCount++;
+                        updateProgress();
+                        if (doneCount === totalToLoad) onAllLoaded();
+                    })
+                    .catch(() => {
+                        partsState[filePath].failed = true;
+                        doneCount++;
+                        updateProgress();
+                        markDot(filePath, 'fail');
+                        if (doneCount === totalToLoad) onAllLoaded();
+                    });
+            });
+        }
+
+        function onAllLoaded() {
+            const loaded = Object.values(partsState).filter(p => p.loaded).length;
+            document.getElementById('progress-text').textContent =
+                `Načteno ${loaded} / ${totalToLoad} dílů`;
+            fitCameraToVisible();
+            document.getElementById('info-panel').style.display = 'block';
+        }
+
+        function updateProgress() {
+            const pct = totalToLoad > 0 ? (doneCount / totalToLoad * 100) : 0;
+            const loaded = Object.values(partsState).filter(p => p.loaded).length;
+            document.getElementById('progress-bar').style.width = pct + '%';
+            document.getElementById('progress-text').textContent =
+                `Načítám... ${doneCount}/${totalToLoad}`;
+            if (doneCount === 0) document.getElementById('progress-text').textContent = 'Načítám modely...';
+        }
+
+        // ── Camera fit ───────────────────────────────────────────────────────
+        function fitCameraToVisible() {
+            const box = new THREE.Box3();
+            let has = false;
+            Object.values(partsState).forEach(p => {
+                if (p.mesh && p.visible) {
+                    box.expandByObject(p.mesh);
+                    has = true;
+                }
+            });
+            if (!has) return;
+
             const center = new THREE.Vector3();
             box.getCenter(center);
-            currentMesh.position.sub(center);
-
             const size = new THREE.Vector3();
             box.getSize(size);
             const maxDim = Math.max(size.x, size.y, size.z);
 
-            // Fit camera
-            spherical.radius = maxDim * 2;
-            target.set(0, 0, 0);
+            target.copy(center);
+            spherical.radius = maxDim * 1.4;
             updateCameraPosition();
-
-            // Update info
-            document.getElementById('info-vertices').textContent = vertices.length / 3;
-            document.getElementById('info-triangles').textContent = numTriangles;
-            document.getElementById('info-dimensions').textContent =
-                `${size.x.toFixed(1)} x ${size.y.toFixed(1)} x ${size.z.toFixed(1)} mm`;
-
-            document.getElementById('placeholder').style.display = 'none';
-            document.getElementById('info-panel').style.display = 'block';
         }
 
-        // --- UI helpers ---
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        // ── Visibility ───────────────────────────────────────────────────────
+        function setPartVisible(filePath, visible) {
+            const p = partsState[filePath];
+            if (!p) return;
+            p.visible = visible;
+            if (p.mesh) p.mesh.visible = visible;
+            updateInfoPanel();
         }
 
-        function showError(msg) {
-            const el = document.getElementById('error-msg');
-            el.textContent = msg;
-            el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        function setCategoryVisible(category, visible) {
+            (MODEL_CATALOG[category] || []).forEach(fp => {
+                setPartVisible(fp, visible);
+                const cb = document.querySelector(`[data-path="${fp}"] .part-checkbox`);
+                if (cb) cb.checked = visible;
+            });
         }
 
-        function hideError() {
-            document.getElementById('error-msg').style.display = 'none';
+        function showAll() {
+            Object.keys(partsState).forEach(fp => setPartVisible(fp, true));
+            document.querySelectorAll('.part-checkbox, .cat-checkbox').forEach(cb => { cb.checked = true; });
         }
 
-        // --- Build sidebar ---
+        function hideAll() {
+            Object.keys(partsState).forEach(fp => setPartVisible(fp, false));
+            document.querySelectorAll('.part-checkbox, .cat-checkbox').forEach(cb => { cb.checked = false; });
+        }
+
+        // ── Info panel ───────────────────────────────────────────────────────
+        function updateInfoPanel() {
+            const visible = Object.values(partsState).filter(p => p.mesh && p.visible);
+            const triTotal = visible.reduce((s, p) => s + p.triCount, 0);
+            document.getElementById('info-parts').textContent = visible.length;
+            document.getElementById('info-triangles').textContent = triTotal.toLocaleString('cs');
+        }
+
+        function showPartDetail(filePath) {
+            const p = partsState[filePath];
+            const detail = document.getElementById('info-part-detail');
+            if (!p || !p.loaded || !p.size) { detail.style.display = 'none'; return; }
+            document.getElementById('info-sel-name').textContent = filePath.split('/').pop().replace('.stl', '');
+            document.getElementById('info-sel-dim').textContent =
+                `${p.size.x.toFixed(0)} × ${p.size.y.toFixed(0)} × ${p.size.z.toFixed(0)} mm`;
+            detail.style.display = 'block';
+        }
+
+        // ── Sidebar ──────────────────────────────────────────────────────────
+        function markDot(filePath, state) {
+            const el = document.querySelector(`[data-path="${filePath}"] .load-dot`);
+            if (!el) return;
+            el.className = 'load-dot ' + state;
+        }
+
         function buildFileList() {
             const container = document.getElementById('file-list');
             container.innerHTML = '';
 
-            // Try to dynamically scan models directory, fall back to catalog
-            scanModelsDirectory().then(catalog => {
-                renderCatalog(container, catalog);
-            }).catch(() => {
-                renderCatalog(container, MODEL_CATALOG);
-            });
-        }
+            Object.entries(MODEL_CATALOG).forEach(([cat, paths]) => {
+                const color = CATEGORY_COLORS[cat] || 0x888888;
+                const hex = '#' + color.toString(16).padStart(6, '0');
 
-        async function scanModelsDirectory() {
-            // Try fetching directory listing - works on some servers
-            const response = await fetch(MODELS_DIR);
-            if (!response.ok) throw new Error('Cannot scan');
-
-            const text = await response.text();
-
-            // Try to parse directory listing HTML
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, 'text/html');
-            const links = doc.querySelectorAll('a[href$=".stl"], a[href$=".STL"]');
-
-            if (links.length === 0) throw new Error('No STL files found in listing');
-
-            const catalog = {};
-            links.forEach(link => {
-                const href = link.getAttribute('href');
-                const parts = href.split('/');
-                const category = parts.length > 1 ? parts[parts.length - 2] : 'Ostatní';
-                if (!catalog[category]) catalog[category] = [];
-                catalog[category].push(href);
-            });
-
-            return catalog;
-        }
-
-        function renderCatalog(container, catalog) {
-            const categories = Object.keys(catalog);
-
-            if (categories.length === 0) {
-                container.innerHTML = '<p style="padding: 20px; color: #555; font-size: 0.85em;">Žádné modely nenalezeny. Přetáhněte STL soubor do okna.</p>';
-                return;
-            }
-
-            categories.forEach(categoryName => {
                 const catDiv = document.createElement('div');
                 catDiv.className = 'file-category';
 
                 const header = document.createElement('div');
                 header.className = 'category-header';
-                header.innerHTML = `<span class="arrow">&#9660;</span> ${categoryName}`;
-                header.addEventListener('click', () => {
+                header.innerHTML = `
+                    <input type="checkbox" class="cat-checkbox" checked title="Zobrazit/skrýt kategorii">
+                    <span class="cat-dot" style="background:${hex}"></span>
+                    <span>${cat}</span>
+                    <span class="arrow">&#9660;</span>`;
+
+                const catCb = header.querySelector('.cat-checkbox');
+                catCb.addEventListener('change', e => {
+                    e.stopPropagation();
+                    setCategoryVisible(cat, catCb.checked);
+                });
+
+                header.addEventListener('click', e => {
+                    if (e.target.type === 'checkbox') return;
                     header.classList.toggle('collapsed');
                     items.classList.toggle('hidden');
                 });
@@ -719,16 +782,44 @@
                 const items = document.createElement('div');
                 items.className = 'category-items';
 
-                catalog[categoryName].forEach(filePath => {
+                paths.forEach(filePath => {
+                    const name = filePath.split('/').pop().replace('.stl', '');
                     const item = document.createElement('div');
                     item.className = 'file-item';
-                    const fileName = filePath.split('/').pop().replace('.stl', '');
-                    item.textContent = fileName;
-                    item.addEventListener('click', () => {
+                    item.dataset.path = filePath;
+                    item.innerHTML = `
+                        <input type="checkbox" class="part-checkbox" checked title="Zobrazit/skrýt díl">
+                        <span class="part-name">${name}</span>
+                        <span class="load-dot"></span>`;
+
+                    const cb = item.querySelector('.part-checkbox');
+                    cb.addEventListener('change', e => {
+                        e.stopPropagation();
+                        setPartVisible(filePath, cb.checked);
+                        // sync category checkbox
+                        const allChecked = paths.every(p => partsState[p] && partsState[p].visible);
+                        catCb.checked = allChecked;
+                    });
+
+                    item.querySelector('.part-name').addEventListener('click', () => {
                         document.querySelectorAll('.file-item.active').forEach(el => el.classList.remove('active'));
                         item.classList.add('active');
-                        loadModel(MODELS_DIR + filePath, fileName);
+                        selectedPath = filePath;
+                        showPartDetail(filePath);
+                        document.getElementById('model-name').textContent = name;
+
+                        // Focus camera on this part if loaded
+                        const p = partsState[filePath];
+                        if (p && p.mesh && p.visible) {
+                            const box = new THREE.Box3().setFromObject(p.mesh);
+                            box.getCenter(target);
+                            const size = new THREE.Vector3();
+                            box.getSize(size);
+                            spherical.radius = Math.max(size.x, size.y, size.z) * 2.5;
+                            updateCameraPosition();
+                        }
                     });
+
                     items.appendChild(item);
                 });
 
@@ -738,121 +829,128 @@
             });
         }
 
-        // --- Toolbar ---
+        // ── Toolbar ──────────────────────────────────────────────────────────
         function initToolbar() {
             document.getElementById('btn-reset').addEventListener('click', () => {
-                spherical = { theta: Math.PI / 4, phi: Math.PI / 4, radius: spherical.radius };
-                target.set(0, 0, 0);
+                spherical = { theta: -0.8, phi: 1.1, radius: 2400 };
+                target.set(700, 0, 50);
                 updateCameraPosition();
             });
 
-            document.getElementById('btn-wireframe').addEventListener('click', () => {
+            document.getElementById('btn-fit').addEventListener('click', fitCameraToVisible);
+
+            document.getElementById('btn-wireframe').addEventListener('click', function () {
                 isWireframe = !isWireframe;
-                if (currentMesh) {
-                    currentMesh.material.wireframe = isWireframe;
-                }
+                this.classList.toggle('active', isWireframe);
+                Object.values(partsState).forEach(p => {
+                    if (p.mesh) p.mesh.material.wireframe = isWireframe;
+                });
             });
 
-            document.getElementById('btn-normals').addEventListener('click', () => {
-                showNormals = !showNormals;
-                if (currentMesh) {
-                    if (showNormals && !normalsHelper) {
-                        // Simple normals visualization using lines
-                        const positions = currentMesh.geometry.attributes.position.array;
-                        const normsArr = currentMesh.geometry.attributes.normal.array;
-                        const linePositions = [];
-                        const step = Math.max(1, Math.floor(positions.length / 3 / 500)) * 3;
-
-                        for (let i = 0; i < positions.length; i += step) {
-                            linePositions.push(
-                                positions[i], positions[i+1], positions[i+2],
-                                positions[i] + normsArr[i] * 5,
-                                positions[i+1] + normsArr[i+1] * 5,
-                                positions[i+2] + normsArr[i+2] * 5
-                            );
+            document.getElementById('btn-normals').addEventListener('click', function () {
+                const show = this.classList.toggle('active');
+                normalsHelpers.forEach(h => { scene.remove(h); h.geometry.dispose(); h.material.dispose(); });
+                normalsHelpers = [];
+                if (show) {
+                    Object.values(partsState).forEach(p => {
+                        if (!p.mesh || !p.visible) return;
+                        const pos = p.mesh.geometry.attributes.position.array;
+                        const nrm = p.mesh.geometry.attributes.normal.array;
+                        const lines = [];
+                        const step = Math.max(1, Math.floor(pos.length / 3 / 300)) * 3;
+                        for (let i = 0; i < pos.length; i += step) {
+                            lines.push(pos[i], pos[i+1], pos[i+2],
+                                pos[i]+nrm[i]*4, pos[i+1]+nrm[i+1]*4, pos[i+2]+nrm[i+2]*4);
                         }
-
-                        const lineGeom = new THREE.BufferGeometry();
-                        lineGeom.setAttribute('position',
-                            new THREE.Float32BufferAttribute(linePositions, 3));
-                        const lineMat = new THREE.LineBasicMaterial({ color: 0x00ff00 });
-                        normalsHelper = new THREE.LineSegments(lineGeom, lineMat);
-                        normalsHelper.position.copy(currentMesh.position);
-                        scene.add(normalsHelper);
-                    } else if (!showNormals && normalsHelper) {
-                        scene.remove(normalsHelper);
-                        normalsHelper.geometry.dispose();
-                        normalsHelper.material.dispose();
-                        normalsHelper = null;
-                    }
+                        const g = new THREE.BufferGeometry();
+                        g.setAttribute('position', new THREE.Float32BufferAttribute(lines, 3));
+                        const h = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x00ff88 }));
+                        h.position.copy(p.mesh.position);
+                        h.rotation.copy(p.mesh.rotation);
+                        scene.add(h);
+                        normalsHelpers.push(h);
+                    });
                 }
             });
 
             document.getElementById('btn-top').addEventListener('click', () => {
-                spherical.theta = 0;
-                spherical.phi = 0.01;
+                spherical.phi = 0.02; spherical.theta = -Math.PI / 2;
                 updateCameraPosition();
             });
 
             document.getElementById('btn-front').addEventListener('click', () => {
-                spherical.theta = 0;
-                spherical.phi = Math.PI / 2;
+                // View from in front of nose (–X direction)
+                spherical.phi = Math.PI / 2; spherical.theta = Math.PI;
                 updateCameraPosition();
             });
 
             document.getElementById('btn-side').addEventListener('click', () => {
-                spherical.theta = Math.PI / 2;
-                spherical.phi = Math.PI / 2;
+                // View from left side (+Y direction)
+                spherical.phi = Math.PI / 2; spherical.theta = Math.PI / 2;
                 updateCameraPosition();
             });
+
+            document.getElementById('btn-show-all').addEventListener('click', showAll);
+            document.getElementById('btn-hide-all').addEventListener('click', hideAll);
         }
 
-        // --- Drag and drop ---
+        // ── Drag & Drop ──────────────────────────────────────────────────────
         function initDragDrop() {
             const wrapper = document.getElementById('canvas-wrapper');
-            const dropZone = document.getElementById('drop-zone');
+            const zone    = document.getElementById('drop-zone');
 
-            wrapper.addEventListener('dragenter', (e) => {
+            wrapper.addEventListener('dragenter', e => { e.preventDefault(); zone.style.display = 'flex'; });
+            zone.addEventListener('dragleave',   e => { e.preventDefault(); zone.style.display = 'none'; });
+            zone.addEventListener('dragover',    e => e.preventDefault());
+
+            zone.addEventListener('drop', e => {
                 e.preventDefault();
-                dropZone.style.display = 'flex';
-            });
-
-            dropZone.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                dropZone.style.display = 'none';
-            });
-
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
-
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.style.display = 'none';
-
+                zone.style.display = 'none';
                 const file = e.dataTransfer.files[0];
-                if (!file) return;
-
-                if (!file.name.toLowerCase().endsWith('.stl')) {
+                if (!file || !file.name.toLowerCase().endsWith('.stl')) {
                     showError('Podporován je pouze formát STL.');
                     return;
                 }
-
                 const reader = new FileReader();
-                reader.onload = (evt) => {
-                    document.getElementById('model-name').textContent = file.name;
-                    displayModel(evt.target.result, file.name);
+                reader.onload = evt => {
+                    const name = file.name.replace('.stl', '');
+                    // Add as an extra part at origin
+                    const { vertices, normals, numTriangles } = parseSTL(evt.target.result);
+                    const geo = new THREE.BufferGeometry();
+                    geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                    geo.setAttribute('normal',   new THREE.BufferAttribute(normals, 3));
+                    geo.computeBoundingBox();
+                    const center = new THREE.Vector3();
+                    geo.boundingBox.getCenter(center);
+                    const mat = new THREE.MeshPhongMaterial({ color: 0xff44aa, side: THREE.DoubleSide, wireframe: isWireframe });
+                    const mesh = new THREE.Mesh(geo, mat);
+                    mesh.position.sub(center);
+                    scene.add(mesh);
+                    const box = new THREE.Box3().setFromObject(mesh);
+                    box.getCenter(target);
+                    const sz = new THREE.Vector3(); box.getSize(sz);
+                    spherical.radius = Math.max(sz.x, sz.y, sz.z) * 2;
+                    updateCameraPosition();
+                    document.getElementById('model-name').textContent = name + ' (drag)';
                 };
                 reader.readAsArrayBuffer(file);
             });
         }
 
-        // --- Init ---
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        // ── Boot ─────────────────────────────────────────────────────────────
         window.addEventListener('DOMContentLoaded', () => {
             initViewer();
             buildFileList();
             initToolbar();
             initDragDrop();
+            startLoadingAll();
         });
     })();
     </script>

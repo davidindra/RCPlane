@@ -20,9 +20,59 @@ from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from PIL import Image
 
 PAGE_W, PAGE_H = landscape(A4)  # 297 x 210 mm
+
+# Fonty s podporou UTF-8 / české diakritiky
+FONT_REGULAR = "Helvetica"
+FONT_BOLD = "Helvetica-Bold"
+FONT_ITALIC = "Helvetica-Oblique"
+
+_TTF_CANDIDATES = [
+    # Linux (Debian/Ubuntu)
+    (
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf",
+    ),
+    (
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Oblique.ttf",
+    ),
+    # Windows
+    (
+        "C:/Windows/Fonts/arial.ttf",
+        "C:/Windows/Fonts/arialbd.ttf",
+        "C:/Windows/Fonts/ariali.ttf",
+    ),
+    # macOS
+    (
+        "/Library/Fonts/Arial.ttf",
+        "/Library/Fonts/Arial Bold.ttf",
+        "/Library/Fonts/Arial Italic.ttf",
+    ),
+]
+
+
+def _register_unicode_fonts():
+    global FONT_REGULAR, FONT_BOLD, FONT_ITALIC
+    for regular, bold, italic in _TTF_CANDIDATES:
+        if Path(regular).exists() and Path(bold).exists():
+            pdfmetrics.registerFont(TTFont("UniReg", regular))
+            pdfmetrics.registerFont(TTFont("UniBold", bold))
+            src_italic = italic if Path(italic).exists() else regular
+            pdfmetrics.registerFont(TTFont("UniItalic", src_italic))
+            FONT_REGULAR = "UniReg"
+            FONT_BOLD = "UniBold"
+            FONT_ITALIC = "UniItalic"
+            return
+
+
+_register_unicode_fonts()
 
 # Hezké názvy dílů
 PART_NAMES = {
@@ -68,18 +118,18 @@ VIEW_NAMES = {
 
 def draw_title_page(c, title, subtitle=""):
     """Titulní strana PDF."""
-    c.setFont("Helvetica-Bold", 36)
+    c.setFont(FONT_BOLD, 36)
     c.drawCentredString(PAGE_W / 2, PAGE_H - 80 * mm, title)
 
     if subtitle:
-        c.setFont("Helvetica", 18)
+        c.setFont(FONT_REGULAR, 18)
         c.drawCentredString(PAGE_W / 2, PAGE_H - 95 * mm, subtitle)
 
-    c.setFont("Helvetica", 14)
+    c.setFont(FONT_REGULAR, 14)
     c.drawCentredString(PAGE_W / 2, PAGE_H - 115 * mm,
                         "RC Letadlo – 3D modely pro tisk")
 
-    c.setFont("Helvetica", 11)
+    c.setFont(FONT_REGULAR, 11)
     c.drawCentredString(PAGE_W / 2, PAGE_H - 130 * mm,
                         f"Generováno: {date.today().strftime('%d. %m. %Y')}")
 
@@ -88,7 +138,7 @@ def draw_title_page(c, title, subtitle=""):
     c.setLineWidth(2)
     c.rect(20 * mm, 20 * mm, PAGE_W - 40 * mm, PAGE_H - 40 * mm)
 
-    c.setFont("Helvetica", 9)
+    c.setFont(FONT_REGULAR, 9)
     c.setFillColor(colors.grey)
     c.drawCentredString(PAGE_W / 2, 15 * mm,
                         "Rozpětí 2400 mm | Délka trupu 1400 mm | "
@@ -102,7 +152,7 @@ def draw_part_page(c, part_name, renders_dir, views):
     nice_name = PART_NAMES.get(part_name, part_name)
 
     # Záhlaví
-    c.setFont("Helvetica-Bold", 16)
+    c.setFont(FONT_BOLD, 16)
     c.drawString(15 * mm, PAGE_H - 15 * mm, nice_name)
 
     c.setStrokeColor(colors.HexColor("#3366CC"))
@@ -140,7 +190,7 @@ def draw_part_page(c, part_name, renders_dir, views):
 
         # Popisek pohledu
         vn = VIEW_NAMES.get(view_name, view_name)
-        c.setFont("Helvetica", 8)
+        c.setFont(FONT_REGULAR, 8)
         c.setFillColor(colors.HexColor("#666666"))
         c.drawString(x + 2 * mm, y + cell_h - 4 * mm, vn)
         c.setFillColor(colors.black)
@@ -178,16 +228,16 @@ def draw_part_page(c, part_name, renders_dir, views):
                 img_reader = ImageReader(img)
                 c.drawImage(img_reader, draw_x, draw_y, draw_w, draw_h)
             except Exception as e:
-                c.setFont("Helvetica", 8)
+                c.setFont(FONT_REGULAR, 8)
                 c.drawString(x + 5 * mm, y + cell_h / 2, f"Chyba: {e}")
         else:
-            c.setFont("Helvetica-Oblique", 9)
+            c.setFont(FONT_ITALIC, 9)
             c.setFillColor(colors.HexColor("#999999"))
             c.drawCentredString(x + cell_w / 2, y + cell_h / 2, "Render nedostupný")
             c.setFillColor(colors.black)
 
     # Zápatí
-    c.setFont("Helvetica", 7)
+    c.setFont(FONT_REGULAR, 7)
     c.setFillColor(colors.grey)
     c.drawRightString(PAGE_W - 15 * mm, 8 * mm, f"RC Letadlo – {nice_name}")
     c.setFillColor(colors.black)

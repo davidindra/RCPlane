@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat c:/Users/david/source/repos/RCPlane/.github/workflows/*.yml)"
+    ]
+  }
+}

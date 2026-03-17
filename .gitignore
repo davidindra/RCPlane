@@ -1,0 +1,11 @@
+# Generované soubory – vznikají za buildu, nepatří do repozitáře
+models/renders/
+models/pdf/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# MkDocs build output
+site/

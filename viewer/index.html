@@ -328,6 +328,16 @@
 
         // pos: [x, y, z] in SCAD coords
         // rot: [rx, ry, rz] Euler angles applied to THREE mesh.rotation
+        // scale: [sx, sy, sz] applied to THREE mesh.scale (used for mirroring)
+        // src: override STL file to load (used when P-side loads L-side geometry)
+
+        // Wing dihedral geometry – compute exact Z offsets
+        const DIHEDRAL_DEG = 5;
+        const SEGMENT_LEN = 350;
+        const DZ = SEGMENT_LEN * Math.sin(DIHEDRAL_DEG * Math.PI / 180); // ≈30.5mm per segment
+        const WING_X = 460;
+        const WING_Z0 = 50;  // top of fuselage
+
         const ASSEMBLY_OFFSETS = {
             // Trup
             'trup/trup_predni.stl':              { pos: [0,    0,    0]   },
@@ -335,16 +345,18 @@
             'trup/trup_zadni.stl':               { pos: [850,  0,    0]   },
             'trup/nakladovy_prostor_dvirka.stl': { pos: [475,  0,   51]   },
             'trup/kryt_elektroniky.stl':         { pos: [670,  0,   50]   },
-            // Křídlo – leading edge ≈X460, top of fuselage Z=50, dihedral 5°
-            'kridlo/kridlo_korenovy_dil_L.stl':  { pos: [460,   0,   50]  },
-            'kridlo/kridlo_korenovy_dil_P.stl':  { pos: [460,   0,   50]  },
-            'kridlo/kridlo_stredni_dil_L.stl':   { pos: [460,  350,  81]  },
-            'kridlo/kridlo_stredni_dil_P.stl':   { pos: [460, -350,  81]  },
-            'kridlo/kridlo_koncovy_dil_L.stl':   { pos: [460,  700, 112]  },
-            'kridlo/kridlo_koncovy_dil_P.stl':   { pos: [460, -700, 112]  },
-            'kridlo/zebro_korenove.stl':          { pos: [460,   0,   50]  },
-            'kridlo/zebro_stredni.stl':           { pos: [460,  350,  81]  },
-            'kridlo/zebro_koncove.stl':           { pos: [460,  700, 112]  },
+            // Křídlo – L (left) side: use geometry as-is
+            'kridlo/kridlo_korenovy_dil_L.stl':  { pos: [WING_X, 0,              WING_Z0]          },
+            'kridlo/kridlo_stredni_dil_L.stl':   { pos: [WING_X, SEGMENT_LEN,    WING_Z0 + DZ]     },
+            'kridlo/kridlo_koncovy_dil_L.stl':   { pos: [WING_X, 2*SEGMENT_LEN,  WING_Z0 + 2*DZ]   },
+            // Křídlo – P (right) side: load L-side STL, mirror Y for correct dihedral
+            'kridlo/kridlo_korenovy_dil_P.stl':  { pos: [WING_X, 0,              WING_Z0],          src: 'kridlo/kridlo_korenovy_dil_L.stl', scale: [1, -1, 1] },
+            'kridlo/kridlo_stredni_dil_P.stl':   { pos: [WING_X, -SEGMENT_LEN,   WING_Z0 + DZ],    src: 'kridlo/kridlo_stredni_dil_L.stl',  scale: [1, -1, 1] },
+            'kridlo/kridlo_koncovy_dil_P.stl':   { pos: [WING_X, -2*SEGMENT_LEN, WING_Z0 + 2*DZ],  src: 'kridlo/kridlo_koncovy_dil_L.stl',  scale: [1, -1, 1] },
+            // Žebra a úchyt
+            'kridlo/zebro_korenove.stl':          { pos: [WING_X, 0,              WING_Z0]          },
+            'kridlo/zebro_stredni.stl':           { pos: [WING_X, SEGMENT_LEN,    WING_Z0 + DZ]     },
+            'kridlo/zebro_koncove.stl':           { pos: [WING_X, 2*SEGMENT_LEN,  WING_Z0 + 2*DZ]   },
             'kridlo/uchyt_nosnik.stl':            { pos: [550,   0,   50]  },
             // Ocasní plochy – VOP/SOP chord in X, span in Y, thickness in Z
             // SOP has chord in Y direction → needs rotation.z = -PI/2 to align fore-aft
@@ -601,6 +613,7 @@
             if (offset) {
                 if (offset.pos) mesh.position.set(offset.pos[0], offset.pos[1], offset.pos[2]);
                 if (offset.rot) mesh.rotation.set(offset.rot[0], offset.rot[1], offset.rot[2]);
+                if (offset.scale) mesh.scale.set(offset.scale[0], offset.scale[1], offset.scale[2]);
             }
 
             scene.add(mesh);
@@ -635,7 +648,9 @@
 
             allPaths.forEach(filePath => {
                 markDot(filePath, 'loading');
-                fetch(MODELS_DIR + filePath)
+                const offset = ASSEMBLY_OFFSETS[filePath];
+                const loadPath = (offset && offset.src) ? offset.src : filePath;
+                fetch(MODELS_DIR + loadPath)
                     .then(r => {
                         if (!r.ok) throw new Error('404');
                         return r.arrayBuffer();

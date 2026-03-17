@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RCPlane - 3D Prohlížeč modelů</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 300px;
+            background: #16213e;
+            border-right: 1px solid #0f3460;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #sidebar h1 {
+            padding: 20px;
+            font-size: 1.3em;
+            color: #e94560;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        #sidebar h2 {
+            padding: 15px 20px 5px;
+            font-size: 0.85em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #file-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .file-category {
+            margin-bottom: 5px;
+        }
+
+        .category-header {
+            padding: 8px 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #a0a0a0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-header:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .category-header .arrow {
+            transition: transform 0.2s;
+            font-size: 0.7em;
+        }
+
+        .category-header.collapsed .arrow {
+            transform: rotate(-90deg);
+        }
+
+        .category-items {
+            overflow: hidden;
+        }
+
+        .category-items.hidden {
+            display: none;
+        }
+
+        .file-item {
+            padding: 6px 20px 6px 40px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-item:hover {
+            background: rgba(233, 69, 96, 0.15);
+        }
+
+        .file-item.active {
+            background: rgba(233, 69, 96, 0.3);
+            color: #e94560;
+            font-weight: 600;
+        }
+
+        #viewer-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #toolbar {
+            padding: 10px 20px;
+            background: #16213e;
+            border-bottom: 1px solid #0f3460;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        #toolbar button {
+            background: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #1a4a8a;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.15s;
+        }
+
+        #toolbar button:hover {
+            background: #1a4a8a;
+        }
+
+        #toolbar .separator {
+            width: 1px;
+            height: 24px;
+            background: #0f3460;
+        }
+
+        #model-name {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #e94560;
+            margin-left: auto;
+        }
+
+        #canvas-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        #canvas-wrapper canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(22, 33, 62, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #0f3460;
+            font-size: 0.8em;
+            line-height: 1.6;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+
+        #loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #0f3460;
+            border-top-color: #e94560;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #555;
+        }
+
+        #placeholder .icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        #placeholder p {
+            font-size: 1.1em;
+        }
+
+        #placeholder .hint {
+            font-size: 0.85em;
+            margin-top: 8px;
+            color: #444;
+        }
+
+        #drop-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(233, 69, 96, 0.1);
+            border: 3px dashed #e94560;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+            color: #e94560;
+            z-index: 100;
+        }
+
+        #error-msg {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(233, 69, 96, 0.9);
+            padding: 10px 20px;
+            border-radius: 6px;
+            display: none;
+            z-index: 50;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #16213e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0f3460;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1a4a8a;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h1>RCPlane 3D Viewer</h1>
+        <h2>Modely</h2>
+        <div id="file-list">
+            <p style="padding: 20px; color: #555; font-size: 0.85em;">
+                Načítám seznam modelů...
+            </p>
+        </div>
+    </div>
+
+    <div id="viewer-container">
+        <div id="toolbar">
+            <button id="btn-reset" title="Resetovat pohled">Resetovat pohled</button>
+            <button id="btn-wireframe" title="Přepnout drátový model">Drátový model</button>
+            <button id="btn-normals" title="Zobrazit normály">Normály</button>
+            <div class="separator"></div>
+            <button id="btn-top" title="Pohled shora">Shora</button>
+            <button id="btn-front" title="Pohled zepředu">Zepředu</button>
+            <button id="btn-side" title="Pohled z boku">Z boku</button>
+            <span id="model-name"></span>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="viewer-canvas"></canvas>
+
+            <div id="placeholder">
+                <div class="icon">&#9992;</div>
+                <p>Vyberte model ze seznamu vlevo</p>
+                <p class="hint">nebo přetáhněte STL soubor do okna</p>
+            </div>
+
+            <div id="loading">
+                <div class="spinner"></div>
+                <p>Načítám model...</p>
+            </div>
+
+            <div id="drop-zone">
+                Přetáhněte STL soubor sem
+            </div>
+
+            <div id="error-msg"></div>
+
+            <div id="info-panel" style="display: none;">
+                <div>Vrcholy: <span id="info-vertices">-</span></div>
+                <div>Trojúhelníky: <span id="info-triangles">-</span></div>
+                <div>Rozměry: <span id="info-dimensions">-</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        // --- Configuration ---
+        const MODELS_DIR = '../models/';
+
+        // --- State ---
+        let scene, camera, renderer, controls;
+        let currentMesh = null;
+        let isWireframe = false;
+        let showNormals = false;
+        let normalsHelper = null;
+
+        // --- Model catalog (dynamically scanned or static fallback) ---
+        const MODEL_CATALOG = {
+            'Trup': [
+                'trup/trup_predni.stl',
+                'trup/trup_stredni.stl',
+                'trup/trup_zadni.stl',
+                'trup/nakladovy_prostor_dvirka.stl',
+                'trup/kryt_elektroniky.stl'
+            ],
+            'Křídlo': [
+                'kridlo/kridlo_korenovy_dil_L.stl',
+                'kridlo/kridlo_korenovy_dil_P.stl',
+                'kridlo/kridlo_stredni_dil_L.stl',
+                'kridlo/kridlo_stredni_dil_P.stl',
+                'kridlo/kridlo_koncovy_dil_L.stl',
+                'kridlo/kridlo_koncovy_dil_P.stl',
+                'kridlo/zebro_korenove.stl',
+                'kridlo/zebro_stredni.stl',
+                'kridlo/zebro_koncove.stl',
+                'kridlo/uchyt_nosnik.stl'
+            ],
+            'Ocasní plochy': [
+                'ocasni_plochy/vop_leva.stl',
+                'ocasni_plochy/vop_prava.stl',
+                'ocasni_plochy/sop.stl',
+                'ocasni_plochy/vyskove_kormidlo.stl',
+                'ocasni_plochy/smerove_kormidlo.stl'
+            ],
+            'Podvozek': [
+                'podvozek/hlavni_noha_L.stl',
+                'podvozek/hlavni_noha_P.stl',
+                'podvozek/predni_vidlice.stl',
+                'podvozek/uchyt_podvozku.stl'
+            ],
+            'Doplňky': [
+                'doplnky/drzak_motoru.stl',
+                'doplnky/drzak_serva.stl',
+                'doplnky/voditko_tahu.stl',
+                'doplnky/krytka_konektoru.stl'
+            ]
+        };
+
+        // --- Init Three.js ---
+        function initViewer() {
+            const canvas = document.getElementById('viewer-canvas');
+            const wrapper = document.getElementById('canvas-wrapper');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+
+            camera = new THREE.PerspectiveCamera(
+                45,
+                wrapper.clientWidth / wrapper.clientHeight,
+                0.1,
+                10000
+            );
+            camera.position.set(100, 80, 150);
+
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            renderer.setSize(wrapper.clientWidth, wrapper.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight1.position.set(1, 1, 1);
+            scene.add(dirLight1);
+
+            const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            dirLight2.position.set(-1, -0.5, -1);
+            scene.add(dirLight2);
+
+            // Grid
+            const grid = new THREE.GridHelper(500, 50, 0x0f3460, 0x0a1a3a);
+            scene.add(grid);
+
+            // Axes
+            const axes = new THREE.AxesHelper(50);
+            scene.add(axes);
+
+            // Simple orbit controls (manual implementation)
+            initOrbitControls(canvas);
+
+            // Resize
+            window.addEventListener('resize', () => {
+                camera.aspect = wrapper.clientWidth / wrapper.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(wrapper.clientWidth, wrapper.clientHeight);
+            });
+
+            animate();
+        }
+
+        // --- Simple orbit controls ---
+        let isDragging = false;
+        let previousMouse = { x: 0, y: 0 };
+        let spherical = { theta: Math.PI / 4, phi: Math.PI / 4, radius: 200 };
+        let target = new THREE.Vector3(0, 0, 0);
+
+        function initOrbitControls(canvas) {
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMouse = { x: e.clientX, y: e.clientY };
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - previousMouse.x;
+                const dy = e.clientY - previousMouse.y;
+
+                if (e.buttons === 1) {
+                    // Left button: rotate
+                    spherical.theta -= dx * 0.005;
+                    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1,
+                        spherical.phi - dy * 0.005));
+                } else if (e.buttons === 2 || e.buttons === 4) {
+                    // Right button or middle: pan
+                    const panSpeed = spherical.radius * 0.001;
+                    const right = new THREE.Vector3();
+                    const up = new THREE.Vector3(0, 1, 0);
+                    right.crossVectors(camera.getWorldDirection(new THREE.Vector3()), up).normalize();
+                    target.add(right.multiplyScalar(-dx * panSpeed));
+                    target.y += dy * panSpeed;
+                }
+
+                previousMouse = { x: e.clientX, y: e.clientY };
+                updateCameraPosition();
+            });
+
+            canvas.addEventListener('mouseup', () => { isDragging = false; });
+            canvas.addEventListener('mouseleave', () => { isDragging = false; });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                spherical.radius *= e.deltaY > 0 ? 1.1 : 0.9;
+                spherical.radius = Math.max(10, Math.min(5000, spherical.radius));
+                updateCameraPosition();
+            }, { passive: false });
+
+            canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            updateCameraPosition();
+        }
+
+        function updateCameraPosition() {
+            camera.position.x = target.x + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+            camera.position.y = target.y + spherical.radius * Math.cos(spherical.phi);
+            camera.position.z = target.z + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+            camera.lookAt(target);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        // --- STL Parser ---
+        function parseSTL(buffer) {
+            const isAscii = isAsciiSTL(buffer);
+            if (isAscii) {
+                return parseAsciiSTL(buffer);
+            } else {
+                return parseBinarySTL(buffer);
+            }
+        }
+
+        function isAsciiSTL(buffer) {
+            const str = new TextDecoder().decode(buffer.slice(0, 80));
+            return str.trimStart().startsWith('solid');
+        }
+
+        function parseBinarySTL(buffer) {
+            const view = new DataView(buffer);
+            const numTriangles = view.getUint32(80, true);
+            const vertices = new Float32Array(numTriangles * 9);
+            const normals = new Float32Array(numTriangles * 9);
+
+            let offset = 84;
+            for (let i = 0; i < numTriangles; i++) {
+                const nx = view.getFloat32(offset, true); offset += 4;
+                const ny = view.getFloat32(offset, true); offset += 4;
+                const nz = view.getFloat32(offset, true); offset += 4;
+
+                for (let j = 0; j < 3; j++) {
+                    const idx = i * 9 + j * 3;
+                    vertices[idx] = view.getFloat32(offset, true); offset += 4;
+                    vertices[idx + 1] = view.getFloat32(offset, true); offset += 4;
+                    vertices[idx + 2] = view.getFloat32(offset, true); offset += 4;
+                    normals[idx] = nx;
+                    normals[idx + 1] = ny;
+                    normals[idx + 2] = nz;
+                }
+                offset += 2; // attribute byte count
+            }
+
+            return { vertices, normals, numTriangles };
+        }
+
+        function parseAsciiSTL(buffer) {
+            const text = new TextDecoder().decode(buffer);
+            const vertexList = [];
+            const normalList = [];
+
+            const facetRegex = /facet\s+normal\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+outer\s+loop\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+endloop\s+endfacet/g;
+
+            let match;
+            while ((match = facetRegex.exec(text)) !== null) {
+                const nx = parseFloat(match[1]);
+                const ny = parseFloat(match[2]);
+                const nz = parseFloat(match[3]);
+
+                for (let i = 0; i < 3; i++) {
+                    vertexList.push(
+                        parseFloat(match[4 + i * 3]),
+                        parseFloat(match[5 + i * 3]),
+                        parseFloat(match[6 + i * 3])
+                    );
+                    normalList.push(nx, ny, nz);
+                }
+            }
+
+            return {
+                vertices: new Float32Array(vertexList),
+                normals: new Float32Array(normalList),
+                numTriangles: vertexList.length / 9
+            };
+        }
+
+        // --- Load and display model ---
+        function loadModel(path, name) {
+            showLoading(true);
+            hideError();
+            document.getElementById('model-name').textContent = name;
+
+            fetch(path)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Soubor nenalezen: ${path}`);
+                    return response.arrayBuffer();
+                })
+                .then(buffer => {
+                    displayModel(buffer, name);
+                    showLoading(false);
+                })
+                .catch(err => {
+                    showLoading(false);
+                    showError(`Chyba: ${err.message}`);
+                });
+        }
+
+        function displayModel(buffer, name) {
+            // Remove old mesh
+            if (currentMesh) {
+                scene.remove(currentMesh);
+                currentMesh.geometry.dispose();
+                currentMesh.material.dispose();
+            }
+            if (normalsHelper) {
+                scene.remove(normalsHelper);
+                normalsHelper = null;
+            }
+
+            const { vertices, normals, numTriangles } = parseSTL(buffer);
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x4488cc,
+                specular: 0x222222,
+                shininess: 40,
+                wireframe: isWireframe,
+                side: THREE.DoubleSide
+            });
+
+            currentMesh = new THREE.Mesh(geometry, material);
+            scene.add(currentMesh);
+
+            // Center and scale
+            geometry.computeBoundingBox();
+            const box = geometry.boundingBox;
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            currentMesh.position.sub(center);
+
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+
+            // Fit camera
+            spherical.radius = maxDim * 2;
+            target.set(0, 0, 0);
+            updateCameraPosition();
+
+            // Update info
+            document.getElementById('info-vertices').textContent = vertices.length / 3;
+            document.getElementById('info-triangles').textContent = numTriangles;
+            document.getElementById('info-dimensions').textContent =
+                `${size.x.toFixed(1)} x ${size.y.toFixed(1)} x ${size.z.toFixed(1)} mm`;
+
+            document.getElementById('placeholder').style.display = 'none';
+            document.getElementById('info-panel').style.display = 'block';
+        }
+
+        // --- UI helpers ---
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        }
+
+        function hideError() {
+            document.getElementById('error-msg').style.display = 'none';
+        }
+
+        // --- Build sidebar ---
+        function buildFileList() {
+            const container = document.getElementById('file-list');
+            container.innerHTML = '';
+
+            // Try to dynamically scan models directory, fall back to catalog
+            scanModelsDirectory().then(catalog => {
+                renderCatalog(container, catalog);
+            }).catch(() => {
+                renderCatalog(container, MODEL_CATALOG);
+            });
+        }
+
+        async function scanModelsDirectory() {
+            // Try fetching directory listing - works on some servers
+            const response = await fetch(MODELS_DIR);
+            if (!response.ok) throw new Error('Cannot scan');
+
+            const text = await response.text();
+
+            // Try to parse directory listing HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            const links = doc.querySelectorAll('a[href$=".stl"], a[href$=".STL"]');
+
+            if (links.length === 0) throw new Error('No STL files found in listing');
+
+            const catalog = {};
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                const parts = href.split('/');
+                const category = parts.length > 1 ? parts[parts.length - 2] : 'Ostatní';
+                if (!catalog[category]) catalog[category] = [];
+                catalog[category].push(href);
+            });
+
+            return catalog;
+        }
+
+        function renderCatalog(container, catalog) {
+            const categories = Object.keys(catalog);
+
+            if (categories.length === 0) {
+                container.innerHTML = '<p style="padding: 20px; color: #555; font-size: 0.85em;">Žádné modely nenalezeny. Přetáhněte STL soubor do okna.</p>';
+                return;
+            }
+
+            categories.forEach(categoryName => {
+                const catDiv = document.createElement('div');
+                catDiv.className = 'file-category';
+
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.innerHTML = `<span class="arrow">&#9660;</span> ${categoryName}`;
+                header.addEventListener('click', () => {
+                    header.classList.toggle('collapsed');
+                    items.classList.toggle('hidden');
+                });
+
+                const items = document.createElement('div');
+                items.className = 'category-items';
+
+                catalog[categoryName].forEach(filePath => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    const fileName = filePath.split('/').pop().replace('.stl', '');
+                    item.textContent = fileName;
+                    item.addEventListener('click', () => {
+                        document.querySelectorAll('.file-item.active').forEach(el => el.classList.remove('active'));
+                        item.classList.add('active');
+                        loadModel(MODELS_DIR + filePath, fileName);
+                    });
+                    items.appendChild(item);
+                });
+
+                catDiv.appendChild(header);
+                catDiv.appendChild(items);
+                container.appendChild(catDiv);
+            });
+        }
+
+        // --- Toolbar ---
+        function initToolbar() {
+            document.getElementById('btn-reset').addEventListener('click', () => {
+                spherical = { theta: Math.PI / 4, phi: Math.PI / 4, radius: spherical.radius };
+                target.set(0, 0, 0);
+                updateCameraPosition();
+            });
+
+            document.getElementById('btn-wireframe').addEventListener('click', () => {
+                isWireframe = !isWireframe;
+                if (currentMesh) {
+                    currentMesh.material.wireframe = isWireframe;
+                }
+            });
+
+            document.getElementById('btn-normals').addEventListener('click', () => {
+                showNormals = !showNormals;
+                if (currentMesh) {
+                    if (showNormals && !normalsHelper) {
+                        // Simple normals visualization using lines
+                        const positions = currentMesh.geometry.attributes.position.array;
+                        const normsArr = currentMesh.geometry.attributes.normal.array;
+                        const linePositions = [];
+                        const step = Math.max(1, Math.floor(positions.length / 3 / 500)) * 3;
+
+                        for (let i = 0; i < positions.length; i += step) {
+                            linePositions.push(
+                                positions[i], positions[i+1], positions[i+2],
+                                positions[i] + normsArr[i] * 5,
+                                positions[i+1] + normsArr[i+1] * 5,
+                                positions[i+2] + normsArr[i+2] * 5
+                            );
+                        }
+
+                        const lineGeom = new THREE.BufferGeometry();
+                        lineGeom.setAttribute('position',
+                            new THREE.Float32BufferAttribute(linePositions, 3));
+                        const lineMat = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+                        normalsHelper = new THREE.LineSegments(lineGeom, lineMat);
+                        normalsHelper.position.copy(currentMesh.position);
+                        scene.add(normalsHelper);
+                    } else if (!showNormals && normalsHelper) {
+                        scene.remove(normalsHelper);
+                        normalsHelper.geometry.dispose();
+                        normalsHelper.material.dispose();
+                        normalsHelper = null;
+                    }
+                }
+            });
+
+            document.getElementById('btn-top').addEventListener('click', () => {
+                spherical.theta = 0;
+                spherical.phi = 0.01;
+                updateCameraPosition();
+            });
+
+            document.getElementById('btn-front').addEventListener('click', () => {
+                spherical.theta = 0;
+                spherical.phi = Math.PI / 2;
+                updateCameraPosition();
+            });
+
+            document.getElementById('btn-side').addEventListener('click', () => {
+                spherical.theta = Math.PI / 2;
+                spherical.phi = Math.PI / 2;
+                updateCameraPosition();
+            });
+        }
+
+        // --- Drag and drop ---
+        function initDragDrop() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            const dropZone = document.getElementById('drop-zone');
+
+            wrapper.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                dropZone.style.display = 'flex';
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.style.display = 'none';
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.display = 'none';
+
+                const file = e.dataTransfer.files[0];
+                if (!file) return;
+
+                if (!file.name.toLowerCase().endsWith('.stl')) {
+                    showError('Podporován je pouze formát STL.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    document.getElementById('model-name').textContent = file.name;
+                    displayModel(evt.target.result, file.name);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // --- Init ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initViewer();
+            buildFileList();
+            initToolbar();
+            initDragDrop();
+        });
+    })();
+    </script>
+</body>
+</html>

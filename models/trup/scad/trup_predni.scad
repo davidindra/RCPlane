@@ -41,30 +41,37 @@ module predni_trup() {
     // Dovetail spojka na zadnim konci
     translate([delka - 5, 0, 0])
         dovetail_male();
-    // Vyztuzne zebro uvnitr
-    translate([delka/2, 0, 0])
-        rotate([0, 90, 0])
-            linear_extrude(2)
-                difference() {
-                    oval_profile(sirka_max - 2*tloustka - 2, vyska_max - 2*tloustka - 2);
-                    oval_profile(sirka_max - 2*tloustka - 12, vyska_max - 2*tloustka - 12);
-                    // Otvory pro karbonove tyce o8mm
-                    for (y = [-1, 1])
-                        translate([0, y * 30])
-                            circle(d=8.2);
-                }
-    // Uchyty pro karbonove tyce (2x o8mm)
-    for (x = [80, 180, 280]) {
-        translate([x, 0, 0])
-            rotate([0, 90, 0])
-                linear_extrude(4)
-                    difference() {
-                        oval_profile(sirka_max - 2*tloustka - 2, vyska_max - 2*tloustka - 2);
-                        oval_profile(sirka_max - 2*tloustka - 10, vyska_max - 2*tloustka - 10);
-                        for (y = [-1, 1])
-                            translate([0, y * 30])
-                                circle(d=8.2);
-                    }
+    // Vyztuzne zebro a uchyty pro karbonove tyce – oriznuty na skutecny obrys trupu,
+    // aby nepresahovaly pres zuzujici se predni cast (jinak vznika artefakt kruhu ve vieweru)
+    intersection() {
+        hull_predni_vnejsi();
+        union() {
+            // Vyztuzne zebro uvnitr
+            translate([delka/2, 0, 0])
+                rotate([0, 90, 0])
+                    linear_extrude(2)
+                        difference() {
+                            oval_profile(sirka_max - 2*tloustka - 2, vyska_max - 2*tloustka - 2);
+                            oval_profile(sirka_max - 2*tloustka - 12, vyska_max - 2*tloustka - 12);
+                            // Otvory pro karbonove tyce o8mm
+                            for (y = [-1, 1])
+                                translate([0, y * 30])
+                                    circle(d=8.2);
+                        }
+            // Uchyty pro karbonove tyce (2x o8mm)
+            for (x = [80, 180, 280]) {
+                translate([x, 0, 0])
+                    rotate([0, 90, 0])
+                        linear_extrude(4)
+                            difference() {
+                                oval_profile(sirka_max - 2*tloustka - 2, vyska_max - 2*tloustka - 2);
+                                oval_profile(sirka_max - 2*tloustka - 10, vyska_max - 2*tloustka - 10);
+                                for (y = [-1, 1])
+                                    translate([0, y * 30])
+                                        circle(d=8.2);
+                            }
+            }
+        }
     }
 }
 

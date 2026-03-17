@@ -1,0 +1,30 @@
+site_name: RCPlane – Fixed-Wing Dron
+docs_dir: docs
+site_dir: site
+
+nav:
+  - Přehled: README.md
+  - Mechanika: mechanika/README.md
+  - Aerodynamika: aerodynamika/README.md
+  - Konstrukce: konstrukce/README.md
+  - Elektronika: elektronika/README.md
+
+theme:
+  name: material
+  language: cs
+  palette:
+    scheme: default
+    primary: blue-grey
+    accent: orange
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - content.code.copy
+
+markdown_extensions:
+  - tables
+  - toc:
+      permalink: true
+  - attr_list
+  - def_list

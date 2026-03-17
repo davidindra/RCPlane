@@ -43,7 +43,7 @@ Tato složka obsahuje kompletní dokumentaci k projektu fixed-wing dronu.
 
 ## 3D Prohlížeč
 
-Interaktivní 3D prohlížeč modelů je k dispozici v [/viewer/index.html](../viewer/index.html).
+Interaktivní 3D prohlížeč modelů je k dispozici v [/viewer/index.html](viewer/index.html).
 
 ## Specifikace dronu (souhrn)
 

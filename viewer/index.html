@@ -424,7 +424,8 @@
             'trup/trup_stredni.stl':             { pos: [350,  0,    0]   },
             'trup/trup_zadni.stl':               { pos: [850,  0,    0]   },
             'trup/nakladovy_prostor_dvirka.stl': { pos: [475,  0,   51]   },
-            'trup/kryt_elektroniky.stl':         { pos: [670,  0,   50]   },
+            // Slightly lifted to avoid coplanar flicker with fuselage cutout edges
+            'trup/kryt_elektroniky.stl':         { pos: [670,  0,   53]   },
             // Křídlo – L (left) side: use geometry as-is
             'kridlo/kridlo_korenovy_dil_L.stl':  { pos: [WING_X, 0,              WING_Z0]          },
             'kridlo/kridlo_stredni_dil_L.stl':   { pos: [WING_X, SEGMENT_LEN,    WING_Z0 + DZ]     },
@@ -690,37 +691,91 @@
             const view = new DataView(buffer);
             const n = view.getUint32(80, true);
             const vertices = new Float32Array(n * 9);
-            const normals  = new Float32Array(n * 9);
             let off = 84;
             for (let i = 0; i < n; i++) {
-                const nx = view.getFloat32(off, true); off += 4;
-                const ny = view.getFloat32(off, true); off += 4;
-                const nz = view.getFloat32(off, true); off += 4;
+                off += 12; // facet normal in STL is often unreliable, recalculate below
                 for (let j = 0; j < 3; j++) {
                     const idx = i * 9 + j * 3;
                     vertices[idx]   = view.getFloat32(off, true); off += 4;
                     vertices[idx+1] = view.getFloat32(off, true); off += 4;
                     vertices[idx+2] = view.getFloat32(off, true); off += 4;
-                    normals[idx] = nx; normals[idx+1] = ny; normals[idx+2] = nz;
                 }
                 off += 2;
             }
-            return { vertices, normals, numTriangles: n };
+            return { vertices, numTriangles: n };
         }
 
         function parseAsciiSTL(buffer) {
             const text = new TextDecoder().decode(buffer);
-            const vList = [], nList = [];
+            const vList = [];
             const re = /facet\s+normal\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+outer\s+loop\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+endloop\s+endfacet/g;
             let m;
             while ((m = re.exec(text)) !== null) {
-                const nx = +m[1], ny = +m[2], nz = +m[3];
                 for (let i = 0; i < 3; i++) {
                     vList.push(+m[4+i*3], +m[5+i*3], +m[6+i*3]);
-                    nList.push(nx, ny, nz);
                 }
             }
-            return { vertices: new Float32Array(vList), normals: new Float32Array(nList), numTriangles: vList.length / 9 };
+            return { vertices: new Float32Array(vList), numTriangles: vList.length / 9 };
+        }
+
+        function computeTriangleNormals(vertices) {
+            const normals = new Float32Array(vertices.length);
+            if (vertices.length === 0) return normals;
+
+            // Estimate global orientation and flip if mostly inward
+            let cx = 0, cy = 0, cz = 0;
+            const vCount = vertices.length / 3;
+            for (let i = 0; i < vertices.length; i += 3) {
+                cx += vertices[i];
+                cy += vertices[i + 1];
+                cz += vertices[i + 2];
+            }
+            cx /= vCount; cy /= vCount; cz /= vCount;
+
+            let orientationScore = 0;
+
+            for (let i = 0; i < vertices.length; i += 9) {
+                const ax = vertices[i],     ay = vertices[i + 1], az = vertices[i + 2];
+                const bx = vertices[i + 3], by = vertices[i + 4], bz = vertices[i + 5];
+                const dx = vertices[i + 6], dy = vertices[i + 7], dz = vertices[i + 8];
+
+                const abx = bx - ax, aby = by - ay, abz = bz - az;
+                const adx = dx - ax, ady = dy - ay, adz = dz - az;
+
+                let nx = aby * adz - abz * ady;
+                let ny = abz * adx - abx * adz;
+                let nz = abx * ady - aby * adx;
+
+                const len = Math.hypot(nx, ny, nz) || 1;
+                nx /= len; ny /= len; nz /= len;
+
+                const mx = (ax + bx + dx) / 3;
+                const my = (ay + by + dy) / 3;
+                const mz = (az + bz + dz) / 3;
+                orientationScore += nx * (mx - cx) + ny * (my - cy) + nz * (mz - cz);
+
+                normals[i] = normals[i + 3] = normals[i + 6] = nx;
+                normals[i + 1] = normals[i + 4] = normals[i + 7] = ny;
+                normals[i + 2] = normals[i + 5] = normals[i + 8] = nz;
+            }
+
+            if (orientationScore < 0) {
+                for (let i = 0; i < normals.length; i++) normals[i] = -normals[i];
+            }
+
+            return normals;
+        }
+
+        function buildGeometryFromSTL(buffer) {
+            const { vertices, numTriangles } = parseSTL(buffer);
+            const normals = computeTriangleNormals(vertices);
+
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            geo.setAttribute('normal',   new THREE.BufferAttribute(normals,  3));
+            geo.computeBoundingBox();
+
+            return { geo, numTriangles };
         }
 
         // ── Load & display assembly ──────────────────────────────────────────
@@ -736,12 +791,7 @@
         }
 
         function addAssemblyPart(filePath, buffer) {
-            const { vertices, normals, numTriangles } = parseSTL(buffer);
-
-            const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-            geo.setAttribute('normal',   new THREE.BufferAttribute(normals,  3));
-            geo.computeBoundingBox();
+            const { geo, numTriangles } = buildGeometryFromSTL(buffer);
 
             const color = getColorForPath(filePath);
             const mat = new THREE.MeshPhongMaterial({
@@ -1076,11 +1126,7 @@
                 reader.onload = evt => {
                     const name = file.name.replace('.stl', '');
                     // Add as an extra part at origin
-                    const { vertices, normals, numTriangles } = parseSTL(evt.target.result);
-                    const geo = new THREE.BufferGeometry();
-                    geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-                    geo.setAttribute('normal',   new THREE.BufferAttribute(normals, 3));
-                    geo.computeBoundingBox();
+                    const { geo, numTriangles } = buildGeometryFromSTL(evt.target.result);
                     const center = new THREE.Vector3();
                     geo.boundingBox.getCenter(center);
                     const mat = new THREE.MeshPhongMaterial({ color: 0xff44aa, side: THREE.DoubleSide, wireframe: isWireframe });

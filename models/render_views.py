@@ -62,7 +62,9 @@ MODELS = [
     ("doplnky/scad/voditko_tahu.scad", "voditko_tahu", []),
     ("doplnky/scad/krytka_konektoru.scad", "krytka_konektoru", []),
     # === KOMPLETNÍ SESTAVA ===
-    ("sestava.scad", "sestava", []),
+    # use_render=False: sestava importuje hotové STL bez CSG operací –
+    # preview (OpenGL) mode je mnohem rychlejší a zobrazuje barvy správně
+    ("sestava.scad", "sestava", [], False),
 ]
 
 # Skupiny pro PDF organizaci
@@ -102,8 +104,13 @@ GROUPS = {
 }
 
 
-def render_model(scad_path, output_png, view, extra_args=None, models_dir="."):
-    """Renderuje jeden pohled jednoho modelu do PNG."""
+def render_model(scad_path, output_png, view, extra_args=None, models_dir=".",
+                 use_render=True):
+    """Renderuje jeden pohled jednoho modelu do PNG.
+
+    use_render=True  – přidá --render (plná CGAL geometrie, vhodné pro CSG modely)
+    use_render=False – preview/OpenGL mode (vhodné pro sestavu ze samých importů)
+    """
     view_name, rot_x, rot_y, rot_z = view
     camera = f"0,0,0,{rot_x},{rot_y},{rot_z},0"
 
@@ -112,15 +119,18 @@ def render_model(scad_path, output_png, view, extra_args=None, models_dir="."):
         "openscad",
         f"--imgsize={IMG_WIDTH},{IMG_HEIGHT}",
         f"--camera={camera}",
-        "--autocenter", "--viewall", "--render",
+        "--autocenter", "--viewall",
         f"--colorscheme={COLORSCHEME}",
         "-o", str(output_png),
     ]
+    if use_render:
+        cmd.append("--render")
     if extra_args:
         cmd.extend(extra_args)
     cmd.append(str(scad_path))
 
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120,
+    timeout = 300 if not use_render else 120
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
                             cwd=models_dir)
     return result.returncode == 0 and os.path.getsize(output_png) > 0
 
@@ -135,7 +145,10 @@ def render_all(models_dir, output_dir):
     done = 0
     errors = 0
 
-    for scad_rel, model_name, extra_args in MODELS:
+    for entry in MODELS:
+        scad_rel, model_name, extra_args = entry[0], entry[1], entry[2]
+        use_render = entry[3] if len(entry) > 3 else True
+
         scad_path = models_dir / scad_rel
         model_out_dir = output_dir / model_name
         model_out_dir.mkdir(parents=True, exist_ok=True)
@@ -150,7 +163,8 @@ def render_all(models_dir, output_dir):
                 continue
 
             print(f"  [{done}/{total}] {model_name}/{view_name}...", end=" ", flush=True)
-            ok = render_model(scad_path, png_path, view, extra_args, str(models_dir))
+            ok = render_model(scad_path, png_path, view, extra_args, str(models_dir),
+                              use_render=use_render)
             if ok:
                 size_kb = png_path.stat().st_size // 1024
                 print(f"OK ({size_kb} KB)")
@@ -178,7 +192,7 @@ def main():
     # Uložit manifest pro PDF generátor
     manifest = {
         "views": [(v[0], v[1], v[2], v[3]) for v in VIEWS],
-        "models": [(s, n, a) for s, n, a in MODELS],
+        "models": [(e[0], e[1], e[2]) for e in MODELS],
         "groups": GROUPS,
         "img_size": [IMG_WIDTH, IMG_HEIGHT],
     }

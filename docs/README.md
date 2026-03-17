@@ -49,16 +49,20 @@ Interaktivní 3D prohlížeč modelů je k dispozici v [/viewer/index.html](view
 
 Veškeré STL soubory jsou dostupné v adresáři [/models/](../models/).
 
-PDF katalogy s vyrenderovanými pohledy na jednotlivé díly:
+PDF katalogy jsou generovány automaticky při každém CI buildu z OpenSCAD zdrojových souborů.
+Jsou dostupné ke stažení na GitHub Pages:
 
 | Skupina | PDF |
 |---|---|
-| Kompletní katalog | [rc_letadlo_komplet.pdf](../models/pdf/rc_letadlo_komplet.pdf) |
-| Trup | [rc_letadlo_trup.pdf](../models/pdf/rc_letadlo_trup.pdf) |
-| Křídlo | [rc_letadlo_kridlo.pdf](../models/pdf/rc_letadlo_kridlo.pdf) |
-| Ocasní plochy | [rc_letadlo_ocasni_plochy.pdf](../models/pdf/rc_letadlo_ocasni_plochy.pdf) |
-| Podvozek | [rc_letadlo_podvozek.pdf](../models/pdf/rc_letadlo_podvozek.pdf) |
-| Doplňky | [rc_letadlo_doplnky.pdf](../models/pdf/rc_letadlo_doplnky.pdf) |
+| **Kompletní katalog** | [rc_letadlo_komplet.pdf](models/pdf/rc_letadlo_komplet.pdf) |
+| Trup | [rc_letadlo_trup.pdf](models/pdf/rc_letadlo_trup.pdf) |
+| Křídlo | [rc_letadlo_kridlo.pdf](models/pdf/rc_letadlo_kridlo.pdf) |
+| Ocasní plochy | [rc_letadlo_ocasni_plochy.pdf](models/pdf/rc_letadlo_ocasni_plochy.pdf) |
+| Podvozek | [rc_letadlo_podvozek.pdf](models/pdf/rc_letadlo_podvozek.pdf) |
+| Doplňky | [rc_letadlo_doplnky.pdf](models/pdf/rc_letadlo_doplnky.pdf) |
+
+> PDF soubory nejsou součástí repozitáře — vznikají automaticky z OpenSCAD modelů
+> při každém buildu GH Pages a jsou dostupné pouze na nasazeném webu.
 
 ## Specifikace dronu (souhrn)
 

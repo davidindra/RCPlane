@@ -32,6 +32,15 @@ jobs:
       - name: Build documentation
         run: mkdocs build
 
+      - name: Install OpenSCAD and Xvfb
+        run: sudo apt-get install -y openscad xvfb
+
+      - name: Install PDF generation dependencies
+        run: pip install Pillow reportlab
+
+      - name: Generate PDF catalogs
+        run: bash models/build_pdf.sh
+
       - name: Copy viewer into site
         run: cp -r viewer site/viewer
 

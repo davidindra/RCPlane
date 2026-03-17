@@ -40,6 +40,7 @@ jobs:
 
       - name: Generate PDF catalogs
         run: bash models/build_pdf.sh
+        continue-on-error: true
 
       - name: Copy viewer into site
         run: cp -r viewer site/viewer

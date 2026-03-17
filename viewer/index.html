@@ -261,9 +261,88 @@
         ::-webkit-scrollbar-track { background: #16213e; }
         ::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #1a4a8a; }
+
+        /* ── Sidebar toggle button (hidden on desktop) ─────────── */
+        #sidebar-toggle {
+            display: none;
+            background: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #1a4a8a;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        /* ── Sidebar backdrop overlay (mobile) ─────────────────── */
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 149;
+        }
+
+        /* ── Responsive: Tablet (≤ 1024 px) ────────────────────── */
+        @media (max-width: 1024px) {
+            #sidebar { width: 240px; }
+            #toolbar button { padding: 5px 9px; font-size: 0.78em; }
+        }
+
+        /* ── Responsive: Mobile (≤ 767 px) ─────────────────────── */
+        @media (max-width: 767px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 280px;
+                max-width: 82vw;
+                z-index: 150;
+                transform: translateX(-100%);
+                transition: transform 0.28s ease;
+            }
+
+            #sidebar.sidebar-open {
+                transform: translateX(0);
+            }
+
+            #sidebar-overlay.visible {
+                display: block;
+            }
+
+            #sidebar-toggle {
+                display: block;
+            }
+
+            #toolbar {
+                padding: 6px 10px;
+                gap: 5px;
+            }
+
+            #toolbar button {
+                padding: 5px 7px;
+                font-size: 0.72em;
+            }
+
+            /* Hide separators & model name to save space */
+            #toolbar .sep { display: none; }
+            #model-name  { display: none; }
+
+            #info-panel {
+                bottom: 8px;
+                left: 8px;
+                right: 8px;
+                font-size: 0.72em;
+                padding: 8px 10px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div id="sidebar-overlay"></div>
     <div id="sidebar">
         <h1>✈ RCPlane 3D Viewer</h1>
         <div id="sidebar-controls">
@@ -279,6 +358,7 @@
 
     <div id="viewer-container">
         <div id="toolbar">
+            <button id="sidebar-toggle" title="Zobrazit/skrýt seznam dílů">☰</button>
             <button id="btn-reset">Reset pohledu</button>
             <button id="btn-fit">Přizpůsobit</button>
             <div class="sep"></div>
@@ -484,6 +564,72 @@
                 isDragging = true;
                 previousMouse = { x: e.clientX, y: e.clientY };
             });
+
+            // ── Touch controls ───────────────────────────────────
+            let lastTouchDist = 0;
+            let lastTouchMid  = { x: 0, y: 0 };
+
+            canvas.addEventListener('touchstart', e => {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    previousMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                } else if (e.touches.length === 2) {
+                    isDragging = false;
+                    const t0 = e.touches[0], t1 = e.touches[1];
+                    const dx = t0.clientX - t1.clientX, dy = t0.clientY - t1.clientY;
+                    lastTouchDist = Math.sqrt(dx*dx + dy*dy);
+                    lastTouchMid = { x: (t0.clientX + t1.clientX) / 2, y: (t0.clientY + t1.clientY) / 2 };
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', e => {
+                e.preventDefault();
+                if (e.touches.length === 1 && isDragging) {
+                    const dx = e.touches[0].clientX - previousMouse.x;
+                    const dy = e.touches[0].clientY - previousMouse.y;
+                    spherical.theta -= dx * 0.005;
+                    spherical.phi = Math.max(0.05, Math.min(Math.PI - 0.05, spherical.phi - dy * 0.005));
+                    previousMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    updateCameraPosition();
+                } else if (e.touches.length === 2) {
+                    const t0 = e.touches[0], t1 = e.touches[1];
+                    const dx = t0.clientX - t1.clientX, dy = t0.clientY - t1.clientY;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const midX = (t0.clientX + t1.clientX) / 2;
+                    const midY = (t0.clientY + t1.clientY) / 2;
+
+                    // Pinch to zoom
+                    if (lastTouchDist > 0) {
+                        spherical.radius *= lastTouchDist / dist;
+                        spherical.radius = Math.max(50, Math.min(15000, spherical.radius));
+                    }
+
+                    // Two-finger pan
+                    const panSpeed = spherical.radius * 0.001;
+                    const camDir = new THREE.Vector3();
+                    camera.getWorldDirection(camDir);
+                    const right    = new THREE.Vector3().crossVectors(camDir, camera.up).normalize();
+                    const screenUp = new THREE.Vector3().crossVectors(right, camDir).normalize();
+                    target.addScaledVector(right,    -(midX - lastTouchMid.x) * panSpeed);
+                    target.addScaledVector(screenUp,  (midY - lastTouchMid.y) * panSpeed);
+
+                    lastTouchDist = dist;
+                    lastTouchMid  = { x: midX, y: midY };
+                    updateCameraPosition();
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', e => {
+                if (e.touches.length === 0) {
+                    isDragging = false;
+                    lastTouchDist = 0;
+                } else if (e.touches.length === 1) {
+                    previousMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    isDragging = true;
+                    lastTouchDist = 0;
+                }
+            }, { passive: false });
 
             canvas.addEventListener('mousemove', e => {
                 if (!isDragging) return;
@@ -959,12 +1105,35 @@
             setTimeout(() => { el.style.display = 'none'; }, 4000);
         }
 
+        // ── Sidebar toggle (mobile) ───────────────────────────────────────────
+        function initSidebarToggle() {
+            const toggle  = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            function openSidebar()  { sidebar.classList.add('sidebar-open');    overlay.classList.add('visible'); }
+            function closeSidebar() { sidebar.classList.remove('sidebar-open'); overlay.classList.remove('visible'); }
+
+            toggle.addEventListener('click', () => {
+                sidebar.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
+            });
+            overlay.addEventListener('click', closeSidebar);
+
+            // Close sidebar on part-name click (mobile UX)
+            document.getElementById('file-list').addEventListener('click', e => {
+                if (window.innerWidth <= 767 && e.target.classList.contains('part-name')) {
+                    closeSidebar();
+                }
+            });
+        }
+
         // ── Boot ─────────────────────────────────────────────────────────────
         window.addEventListener('DOMContentLoaded', () => {
             initViewer();
             buildFileList();
             initToolbar();
             initDragDrop();
+            initSidebarToggle();
             startLoadingAll();
         });
     })();

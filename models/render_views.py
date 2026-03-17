@@ -7,7 +7,6 @@ Použití: python3 render_views.py [--output-dir DIR]
 """
 
 import subprocess
-import os
 import sys
 import json
 from pathlib import Path
@@ -104,13 +103,9 @@ GROUPS = {
 }
 
 
-def render_model(scad_path, output_png, view, extra_args=None, models_dir=".",
-                 use_render=True):
-    """Renderuje jeden pohled jednoho modelu do PNG.
-
-    use_render=True  – přidá --render (plná CGAL geometrie, vhodné pro CSG modely)
-    use_render=False – preview/OpenGL mode (vhodné pro sestavu ze samých importů)
-    """
+def run_openscad_render(scad_path, output_png, view, extra_args=None, models_dir=".",
+                        use_render=True):
+    """Spustí OpenSCAD pro jeden snímek a vrátí (ok, stderr)."""
     view_name, rot_x, rot_y, rot_z = view
     camera = f"0,0,0,{rot_x},{rot_y},{rot_z},0"
 
@@ -129,12 +124,57 @@ def render_model(scad_path, output_png, view, extra_args=None, models_dir=".",
         cmd.extend(extra_args)
     cmd.append(str(scad_path))
 
-    # CGAL render (--render) je výrazně náročnější než preview režim.
-    # Kratší timeout způsoboval, že většina renderů končila chybou.
     timeout = 300 if use_render else 120
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
-                            cwd=models_dir)
-    return result.returncode == 0 and os.path.getsize(output_png) > 0
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=models_dir,
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"timeout po {timeout}s"
+
+    ok = result.returncode == 0 and output_png.exists() and output_png.stat().st_size > 0
+    stderr = (result.stderr or "").strip()
+    return ok, stderr
+
+
+def render_model(scad_path, output_png, view, extra_args=None, models_dir=".",
+                 use_render=True):
+    """Renderuje jeden pohled jednoho modelu do PNG.
+
+    use_render=True  – přidá --render (plná CGAL geometrie, vhodné pro CSG modely)
+    use_render=False – preview/OpenGL mode (vhodné pro sestavu ze samých importů)
+    """
+    ok, stderr = run_openscad_render(
+        scad_path,
+        output_png,
+        view,
+        extra_args=extra_args,
+        models_dir=models_dir,
+        use_render=use_render,
+    )
+    if ok:
+        return True, None
+
+    # Některé modely nejsou robustní pro CGAL (--render), ale PNG preview bez
+    # tohoto přepínače funguje. Pro katalog je to dostatečné, proto fallback.
+    if use_render:
+        ok_preview, preview_stderr = run_openscad_render(
+            scad_path,
+            output_png,
+            view,
+            extra_args=extra_args,
+            models_dir=models_dir,
+            use_render=False,
+        )
+        if ok_preview:
+            return True, "fallback: preview režim (bez --render)"
+        return False, preview_stderr or stderr
+
+    return False, stderr
 
 
 def render_all(models_dir, output_dir):
@@ -165,13 +205,18 @@ def render_all(models_dir, output_dir):
                 continue
 
             print(f"  [{done}/{total}] {model_name}/{view_name}...", end=" ", flush=True)
-            ok = render_model(scad_path, png_path, view, extra_args, str(models_dir),
-                              use_render=use_render)
+            ok, note = render_model(scad_path, png_path, view, extra_args, str(models_dir),
+                                    use_render=use_render)
             if ok:
                 size_kb = png_path.stat().st_size // 1024
-                print(f"OK ({size_kb} KB)")
+                if note:
+                    print(f"OK ({size_kb} KB, {note})")
+                else:
+                    print(f"OK ({size_kb} KB)")
             else:
                 print("CHYBA!")
+                if note:
+                    print(f"      detail: {note.splitlines()[0][:180]}")
                 errors += 1
 
     print(f"\nRenderování dokončeno: {done - errors}/{total} úspěšných, {errors} chyb")

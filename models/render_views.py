@@ -61,6 +61,8 @@ MODELS = [
     ("doplnky/scad/drzak_serva.scad", "drzak_serva", []),
     ("doplnky/scad/voditko_tahu.scad", "voditko_tahu", []),
     ("doplnky/scad/krytka_konektoru.scad", "krytka_konektoru", []),
+    # === KOMPLETNÍ SESTAVA ===
+    ("sestava.scad", "sestava", []),
 ]
 
 # Skupiny pro PDF organizaci
@@ -92,6 +94,10 @@ GROUPS = {
         "title": "Doplňky (Accessories)",
         "models": ["drzak_motoru", "drzak_serva",
                     "voditko_tahu", "krytka_konektoru"],
+    },
+    "sestava": {
+        "title": "Kompletní sestava",
+        "models": ["sestava"],
     },
 }
 

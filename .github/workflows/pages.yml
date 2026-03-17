@@ -38,6 +38,9 @@ jobs:
       - name: Copy models into site
         run: cp -r models site/models
 
+      - name: Generate model directory indexes
+        run: python scripts/generate_model_index.py site/models
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

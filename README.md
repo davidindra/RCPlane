@@ -18,4 +18,5 @@ Je potřeba vypracovat veškerou dokumentaci, nejen to, co je uvedeno v tomto so
 * 3D model konstrukce vč. jednotlivých dílů, instrukce pro konstrukci
 * elektronika - použité komponenty, zapojení
 
+Dokumentace má být strukturovaně provedena v Markdown souborech.
 Zároveň je vyžadován i HTML 3D prohlížeč existujících modelů dynamicky načítaných z patřičné složky.

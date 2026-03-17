@@ -129,7 +129,9 @@ def render_model(scad_path, output_png, view, extra_args=None, models_dir=".",
         cmd.extend(extra_args)
     cmd.append(str(scad_path))
 
-    timeout = 300 if not use_render else 120
+    # CGAL render (--render) je výrazně náročnější než preview režim.
+    # Kratší timeout způsoboval, že většina renderů končila chybou.
+    timeout = 300 if use_render else 120
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
                             cwd=models_dir)
     return result.returncode == 0 and os.path.getsize(output_png) > 0
@@ -176,7 +178,7 @@ def render_all(models_dir, output_dir):
     if errors > 0:
         print(f"VAROVÁNÍ: {errors} renderů selhalo. "
               f"PDF bude obsahovat placeholder stránky pro tyto díly.")
-    return 0  # Partial failures are acceptable; PDF generator handles missing renders gracefully
+    return errors
 
 
 def main():

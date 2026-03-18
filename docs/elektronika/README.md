@@ -74,34 +74,27 @@ Elektronický systém dronu zajišťuje pohon, řízení, komunikaci a navigaci.
 
 | Komponenta | Specifikace |
 |---|---|
-| Baterie | Li-ion 18650, konfigurace 6S2P (6 sériově, 2 paralelně) |
-| Články | Samsung INR18650-35E, 3 500 mAh, 8A continuous |
+| Baterie | Li-ion 18650, konfigurace 6S3P (6 sériově, 3 paralelně) |
+| Články | Samsung INR18650-35E, 3 500 mAh, 8 A continuous |
 | Nominální napětí | 22,2 V (6S) |
-| Kapacita | 7 000 mAh (2P) |
-| Energie | 155 Wh |
-| BMS | 6S BMS deska, 15A continuous, balancování |
+| Kapacita | 10 500 mAh (3P) |
+| Energie | 233 Wh |
+| Hmotnost baterie | ~900 g (18 článků × ~50 g) |
+| Max. proud článků | 24 A continuous (3P × 8 A) |
+| BMS | 6S BMS deska, 40 A continuous, balancování |
 | BEC (serva) | Integrován v ESC: 5V / 3A |
 | BEC (elektronika) | Step-down DC-DC: 5V / 2A (pro ESP32 a moduly) |
 
-### Rozšíření kapacity baterie
-
-Pro dosažení doletu 100+ km je doporučeno rozšíření na 6S3P:
-
-| Parametr | 6S2P | 6S3P |
-|---|---|---|
-| Kapacita | 7 000 mAh | 10 500 mAh |
-| Energie | 155 Wh | 233 Wh |
-| Hmotnost | 600 g | 900 g |
-| Dolet (odhad) | 60 km | 90 km |
+> **Poznámka k BMS:** Motor SunnySky X2820 při plném výkonu 800 W a napětí 22,2 V odebírá ~36 A. BMS musí být dimenzován minimálně na 40 A continuous, aby napájecí větev podporovala plný výkon motoru. Při cestovním letu je odběr pouze ~6–7 A, takže 40A BMS poskytuje dostatečnou rezervu.
 
 ## Schéma zapojení
 
 ### Napájecí obvod
 
 ```
-Baterie 6S Li-ion (22,2V)
+Baterie 6S3P Li-ion (22,2V, 10 500 mAh)
     │
-    ├───► BMS (6S, 15A)
+    ├───► BMS (6S, 40A)
     │         │
     │         ├───► ESC (22,2V) ───► Motor BLDC
     │         │         │

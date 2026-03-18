@@ -8,13 +8,14 @@ Dron typu fixed-wing je navržen jako celokompozitní konstrukce vyráběná pri
 
 | Parametr | Hodnota |
 |---|---|
-| Rozpětí křídel | 2 400 mm |
+| Rozpětí křídel | 2 200 mm |
 | Délka trupu | 1 400 mm |
-| Letová hmotnost (bez nákladu) | ~4,5 kg |
+| Plocha křídla | 0,554 m² |
+| Letová hmotnost (bez nákladu) | ~4,1 kg |
 | Max. hmotnost nákladu | 2 kg |
-| Max. vzletová hmotnost (MTOW) | ~6,5 kg |
-| Plošné zatížení (bez nákladu) | ~56 g/dm² |
-| Plošné zatížení (s nákladem) | ~81 g/dm² |
+| Max. vzletová hmotnost (MTOW) | ~6,1 kg |
+| Plošné zatížení (bez nákladu) | ~74 g/dm² |
+| Plošné zatížení (s nákladem) | ~110 g/dm² |
 
 ## Konstrukční materiály
 
@@ -113,32 +114,32 @@ Dron má pevný podvozek pro autonomní vzlet a přistání z rovného povrchu.
 | Podvozek | 150 |
 | Motor + vrtule | 350 |
 | ESC | 80 |
-| Baterie (Li-ion 6S, 10 000 mAh) | 850 |
+| Baterie (Li-ion 6S3P, 10 500 mAh) | 900 |
 | Řídicí elektronika (FC, GPS, 4G, BT) | 200 |
 | Serva (5×) | 150 |
 | Kabeláž a konektory | 100 |
 | Karbónové tyče | 200 |
 | Spojovací materiál | 70 |
-| **Celkem (bez nákladu)** | **~4 050** |
+| **Celkem (bez nákladu)** | **~4 100** |
 | Náklad | až 2 000 |
-| **MTOW** | **~6 050** |
+| **MTOW** | **~6 100** |
 
 ## Zatěžovací stavy
 
 ### Normální let (1g)
 
-- Vztlak = MTOW = 6,05 kg × 9,81 = 59,3 N
+- Vztlak = MTOW = 6,1 kg × 9,81 = 59,8 N
 - Rozložen rovnoměrně na křídlo
 
 ### Manévr (2,5g)
 
 - Maximální provozní přetížení: 2,5g
-- Celkový vztlak: 148,3 N
-- Ohybový moment v kořeni křídla: ~89 Nm
+- Celkový vztlak: 149,5 N
+- Ohybový moment v kořeni křídla: ~90 Nm
 
 ### Přistání (3g náraz)
 
-- Rázové zatížení podvozku: 3 × 59,3 = 177,9 N
+- Rázové zatížení podvozku: 3 × 59,8 = 179,4 N
 - Podvozek musí absorbovat energii při vertikální rychlosti do 2 m/s
 
 ## Voděodolnost

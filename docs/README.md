@@ -70,13 +70,14 @@ Jsou dostupné ke stažení na GitHub Pages:
 | Parametr | Hodnota |
 |---|---|
 | Typ | Fixed-wing UAV |
-| Rozpětí | 2 400 mm |
+| Rozpětí | 2 200 mm |
 | Délka | 1 400 mm |
-| MTOW | ~6,5 kg |
+| MTOW | ~6,1 kg |
 | Náklad | až 2 kg |
-| Rychlost | 50–120 km/h |
-| Dolet | 83–134 km (dle baterie) |
-| Pádová rychlost | 37 km/h |
+| Cestovní rychlost | 50–60 km/h |
+| Max. rychlost (odhad) | ~100 km/h |
+| Dolet (analytický odhad) | 82–85 km |
+| Pádová rychlost | ~39 km/h |
 | Řízení | Bluetooth (BLE) + 4G/LTE |
-| Pohon | BLDC 800 W + Li-ion 6S |
+| Pohon | BLDC 800 W + Li-ion 6S3P 10 500 mAh |
 | Materiál | PET-G (3D tisk) + karbón |

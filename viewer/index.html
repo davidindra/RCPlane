@@ -423,9 +423,8 @@
             'trup/trup_predni.stl':              { pos: [0,    0,    0]   },
             'trup/trup_stredni.stl':             { pos: [350,  0,    0]   },
             'trup/trup_zadni.stl':               { pos: [850,  0,    0]   },
-            'trup/nakladovy_prostor_dvirka.stl': { pos: [475,  0,   51]   },
-            // Slightly lifted to avoid coplanar flicker with fuselage cutout edges
-            'trup/kryt_elektroniky.stl':         { pos: [670,  0,   53]   },
+            'trup/nakladovy_prostor_dvirka.stl': { pos: [475,  0,   50]   },
+            'trup/kryt_elektroniky.stl':         { pos: [670,  0,   50]   },
             // Křídlo – L (left) side: use geometry as-is
             'kridlo/kridlo_korenovy_dil_L.stl':  { pos: [WING_X, 0,              WING_Z0]          },
             'kridlo/kridlo_stredni_dil_L.stl':   { pos: [WING_X, SEGMENT_LEN,    WING_Z0 + DZ]     },
@@ -452,10 +451,13 @@
             'podvozek/predni_vidlice.stl': { pos: [100, 0, -130] },
             'podvozek/uchyt_podvozku.stl': { pos: [550, 0,  -50] },
             // Doplňky
-            'doplnky/drzak_motoru.stl':     { pos: [  0,  0,  0] },
-            'doplnky/drzak_serva.stl':      { pos: [500, 40, 30] },
+            // Motor mount: disk in YZ plane (face to nose tip), spacers extend forward (-X)
+            'doplnky/drzak_motoru.stl':     { pos: [  0,  0,  0], rot: [0, -Math.PI/2, 0] },
+            // Aileron servo: inside L kridlo_stredni at the aileron servo cutout location
+            'doplnky/drzak_serva.stl':      { pos: [614, 642, 93] },
             'doplnky/voditko_tahu.stl':     { pos: [900,  0,  0] },
-            'doplnky/krytka_konektoru.stl': { pos: [400,  0,  0] },
+            // Connector cap: on right side of fuselage (Y=70), face pointing outward (+Y)
+            'doplnky/krytka_konektoru.stl': { pos: [400, 70,  0], rot: [-Math.PI/2, 0, 0] },
         };
 
         const MODEL_CATALOG = {

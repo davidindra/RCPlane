@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat c:/Users/david/source/repos/RCPlane/.github/workflows/*.yml)"
+      "Bash(cat c:/Users/david/source/repos/RCPlane/.github/workflows/*.yml)",
+      "Bash(git -C /c/Users/david/source/repos/RCPlane log --oneline -15)",
+      "Bash(openscad --version)",
+      "Bash(OPENSCAD=\"/c/Program Files/OpenSCAD/openscad.exe\")",
+      "Bash(bash build_stl.sh)",
+      "Bash(PATH=\"/c/Program Files/OpenSCAD:$PATH\" OPENSCAD=\"/c/Program Files/OpenSCAD/openscad.exe\" bash -c 'source build_stl.sh')",
+      "Bash(export PATH=\"/c/Program Files/OpenSCAD:$PATH\")",
+      "Bash(export PATH=\"/c/Program Files/OpenSCAD:/usr/bin:/bin:$PATH\")"
     ]
   }
 }

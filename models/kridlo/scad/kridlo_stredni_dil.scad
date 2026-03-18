@@ -21,20 +21,29 @@ pozice_nosnik = 0.30;
 
 mirror_factor = (strana == "L") ? 1 : -1;
 
+// Helper: rez potahem na relativni pozici t (0=zacitek dilu, 1=konec dilu)
+// Pouzivan pro multi-segment loft, ktery eliminuje artefakty hull() pri krouceni.
+module potah_rez_s(t) {
+    h   = hloubka_zacatek + (hloubka_konec - hloubka_zacatek) * t;
+    zkr = zkrouceni_zac   + (zkrouceni_kon  - zkrouceni_zac)  * t;
+    translate([0, mirror_factor * t * delka, mirror_factor * t * delka * sin(vzepeti)])
+        rotate([90, 0, 0])
+            rotate([0, 0, zkr])
+                linear_extrude(1)
+                    clark_y_profile(h);
+}
+
+loft_n = 6; // pocet segmentu; kazdy segment ma ~0.12deg zkrouceni => bez viditelnych artefaktu
+
 module kridlo_stredni() {
     difference() {
         union() {
-            // Potah - loft
-            hull() {
-                rotate([90, 0, 0])
-                    rotate([0, 0, zkrouceni_zac])
-                        linear_extrude(1)
-                            clark_y_profile(hloubka_zacatek);
-                translate([0, mirror_factor * delka, mirror_factor * delka * sin(vzepeti)])
-                    rotate([90, 0, 0])
-                        rotate([0, 0, zkrouceni_kon])
-                            linear_extrude(1)
-                                clark_y_profile(hloubka_konec);
+            // Potah - loft rozdeleny na segmenty (fix hull() artefaktu pri krouceni)
+            for (i = [0 : loft_n - 1]) {
+                hull() {
+                    potah_rez_s(i / loft_n);
+                    potah_rez_s((i + 1) / loft_n);
+                }
             }
 
             // Spojovaci priruba na obou koncich
@@ -52,9 +61,9 @@ module kridlo_stredni() {
             }
         }
 
-        // Vnitrni dutina
+        // Vnitrni dutina (bez krouceni - vzdy uvnitr vnejsiho potahu)
         hull() {
-            translate([tl_potah, tl_potah, tl_potah])
+            translate([tl_potah, tl_potah, 0])
                 rotate([90, 0, 0])
                     linear_extrude(1)
                         offset(delta=-tl_potah)

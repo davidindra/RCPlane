@@ -17,33 +17,29 @@ kormidlo_pomer = 0.40;
 
 module sop() {
     difference() {
-        // Plný tvar - svisle orientovány
+        // Plný tvar - svisle orientovány (profil v rovině XY, chord podél Y, tloušťka podél X, rozpětí podél Z)
         hull() {
-            rotate([0, -90, 0])
+            rotate([0, 0, 90])
+                linear_extrude(1)
+                    naca0009_profile(hloubka_koren);
+            translate([0, 0, vyska])
                 rotate([0, 0, 90])
                     linear_extrude(1)
-                        naca0009_profile(hloubka_koren);
-            translate([0, 0, vyska])
-                rotate([0, -90, 0])
-                    rotate([0, 0, 90])
-                        linear_extrude(1)
-                            naca0009_profile(hloubka_konec);
+                        naca0009_profile(hloubka_konec);
         }
 
         // Dutina
         hull() {
             translate([0, tl, tl])
-                rotate([0, -90, 0])
-                    rotate([0, 0, 90])
-                        linear_extrude(1)
-                            offset(delta=-tl)
-                                naca0009_profile(hloubka_koren);
+                rotate([0, 0, 90])
+                    linear_extrude(1)
+                        offset(delta=-tl)
+                            naca0009_profile(hloubka_koren);
             translate([0, tl, vyska - tl])
-                rotate([0, -90, 0])
-                    rotate([0, 0, 90])
-                        linear_extrude(1)
-                            offset(delta=-tl)
-                                naca0009_profile(hloubka_konec);
+                rotate([0, 0, 90])
+                    linear_extrude(1)
+                        offset(delta=-tl)
+                            naca0009_profile(hloubka_konec);
         }
 
         // Řez pro směrové kormidlo
@@ -68,33 +64,31 @@ module sop() {
         frac = i / 4;
         h = hloubka_koren + (hloubka_konec - hloubka_koren) * frac;
         translate([0, 0, frac * vyska])
-            rotate([0, -90, 0])
-                rotate([0, 0, 90])
-                    linear_extrude(1.5)
-                        difference() {
+            rotate([0, 0, 90])
+                linear_extrude(1.5)
+                    difference() {
+                        naca0009_profile(h);
+                        offset(delta=-2)
                             naca0009_profile(h);
-                            offset(delta=-2)
-                                naca0009_profile(h);
-                            translate([h * pozice_nosnik, 0])
-                                circle(d=nosnik_prumer);
-                        }
+                        translate([h * pozice_nosnik, 0])
+                            circle(d=nosnik_prumer);
+                    }
     }
 
     // Kořenové žebro (montáž k trupu)
-    rotate([0, -90, 0])
-        rotate([0, 0, 90])
-            linear_extrude(3)
-                difference() {
+    rotate([0, 0, 90])
+        linear_extrude(3)
+            difference() {
+                naca0009_profile(hloubka_koren);
+                offset(delta=-3)
                     naca0009_profile(hloubka_koren);
-                    offset(delta=-3)
-                        naca0009_profile(hloubka_koren);
-                    translate([hloubka_koren * pozice_nosnik, 0])
-                        circle(d=nosnik_prumer);
-                    // Montážní šrouby
-                    for (x = [-1, 1])
-                        translate([hloubka_koren * 0.2, x * 4])
-                            circle(d=3.2);
-                }
+                translate([hloubka_koren * pozice_nosnik, 0])
+                    circle(d=nosnik_prumer);
+                // Montážní šrouby
+                for (x = [-1, 1])
+                    translate([hloubka_koren * 0.2, x * 4])
+                        circle(d=3.2);
+            }
 }
 
 sop();

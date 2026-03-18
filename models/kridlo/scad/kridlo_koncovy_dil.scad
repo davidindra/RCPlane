@@ -37,6 +37,18 @@ module potah_rez_k(t) {
 
 loft_n = 6; // pocet segmentu; kazdy segment ma ~0.13deg zkrouceni => bez viditelnych artefaktu
 
+// Helper: rez dutinou na relativni pozici t - kopiruje zkrouceni potahu
+module dutina_rez_k(t) {
+    h   = hloubka_zacatek + (hloubka_konec - hloubka_zacatek) * t;
+    zkr = zkrouceni_zac   + (zkrouceni_kon  - zkrouceni_zac)  * t;
+    translate([0, mirror_factor * t * delka, mirror_factor * t * delka * sin(vzepeti)])
+        rotate([90, 0, 0])
+            rotate([0, 0, zkr])
+                linear_extrude(1)
+                    offset(delta=-tl_potah)
+                        clark_y_profile(h);
+}
+
 module kridlo_koncovy() {
     difference() {
         union() {
@@ -65,26 +77,21 @@ module kridlo_koncovy() {
 
             // Spojovaci priruba
             rotate([90, 0, 0])
-                linear_extrude(3)
-                    difference() {
-                        clark_y_profile(hloubka_zacatek);
-                        offset(delta=-3)
+                rotate([0, 0, zkrouceni_zac])
+                    linear_extrude(3)
+                        difference() {
                             clark_y_profile(hloubka_zacatek);
-                    }
+                            offset(delta=-3)
+                                clark_y_profile(hloubka_zacatek);
+                        }
         }
 
-        // Vnitrni dutina (bez krouceni - vzdy uvnitr vnejsiho potahu)
-        hull() {
-            translate([tl_potah, tl_potah, 0])
-                rotate([90, 0, 0])
-                    linear_extrude(1)
-                        offset(delta=-tl_potah)
-                            clark_y_profile(hloubka_zacatek);
-            translate([tl_potah, mirror_factor * (delka - tl_potah), mirror_factor * delka * sin(vzepeti)])
-                rotate([90, 0, 0])
-                    linear_extrude(1)
-                        offset(delta=-tl_potah)
-                            clark_y_profile(hloubka_konec);
+        // Vnitrni dutina - loft se stejnym kroucenim jako potah (eliminuje proniknuti dutiny skrz potah)
+        for (i = [0 : loft_n - 1]) {
+            hull() {
+                dutina_rez_k(i / loft_n);
+                dutina_rez_k((i + 1) / loft_n);
+            }
         }
 
         // Otvor pro nosnik
@@ -102,18 +109,20 @@ module kridlo_koncovy() {
         frac = i / 5;
         pos_y = mirror_factor * frac * delka;
         h = hloubka_zacatek + (hloubka_konec - hloubka_zacatek) * frac;
+        zkr = zkrouceni_zac + (zkrouceni_kon - zkrouceni_zac) * frac;
         translate([0, pos_y, pos_y * sin(vzepeti)])
             rotate([90, 0, 0])
-                linear_extrude(1.5)
-                    difference() {
-                        clark_y_profile(h);
-                        offset(delta=-2.5)
+                rotate([0, 0, zkr])
+                    linear_extrude(1.5)
+                        difference() {
                             clark_y_profile(h);
-                        translate([h * pozice_nosnik, h * 0.04])
-                            circle(d=nosnik_prumer);
-                        translate([h * 0.55, h * 0.02])
-                            circle(d=10);
-                    }
+                            offset(delta=-2.5)
+                                clark_y_profile(h);
+                            translate([h * pozice_nosnik, h * 0.04])
+                                circle(d=nosnik_prumer);
+                            translate([h * 0.55, h * 0.02])
+                                circle(d=10);
+                        }
     }
 }
 

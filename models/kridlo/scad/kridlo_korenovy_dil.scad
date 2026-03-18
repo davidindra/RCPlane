@@ -52,7 +52,7 @@ module kridlo_korenovy() {
 
         // Vybrat vnitrek (dutina)
         hull() {
-            translate([tl_potah, tl_potah, 0])
+            translate([tl_potah, mirror_factor * tl_potah, 0])
                 rotate([90, 0, 0])
                     linear_extrude(1)
                         offset(delta=-tl_potah)

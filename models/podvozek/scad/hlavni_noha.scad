@@ -12,7 +12,7 @@ rozchod_polovina = 175; // vzdálenost od osy
 prumer_kola = 80;
 osa_kola = 4; // mm průměr osy
 
-mirror_factor = (strana == "L") ? -1 : 1;
+mirror_factor = (strana == "L") ? 1 : -1;  // L=+Y, P=-Y (viewer coords)
 
 module hlavni_noha() {
     // Horní úchyt k trupu
@@ -25,29 +25,29 @@ module hlavni_noha() {
             // Horní bod (u trupu)
             translate([0, 0, vyska])
                 cube([20, 8, 5], center=true);
-            // Spodní bod (u kola) - odsazený do strany
-            translate([mirror_factor * rozchod_polovina, 10, prumer_kola/2])
-                cube([20, 8, 5], center=true);
+            // Spodní bod (u kola) - odsazený do strany (Y = příčný/spanwise směr)
+            translate([10, mirror_factor * rozchod_polovina, prumer_kola/2])
+                cube([8, 20, 5], center=true);
         }
         // Odlehčení - dutina uvnitř
         hull() {
             translate([0, 0, vyska - 5])
                 cube([14, 3, 3], center=true);
-            translate([mirror_factor * rozchod_polovina, 10, prumer_kola/2 + 5])
-                cube([14, 3, 3], center=true);
+            translate([10, mirror_factor * rozchod_polovina, prumer_kola/2 + 5])
+                cube([3, 14, 3], center=true);
         }
     }
 
     // Vzpěra pro tuhost
     hull() {
-        translate([0, -5, vyska - 20])
-            cube([15, 5, 3], center=true);
-        translate([mirror_factor * rozchod_polovina * 0.6, 5, vyska * 0.4])
-            cube([10, 5, 3], center=true);
+        translate([-5, 0, vyska - 20])
+            cube([5, 15, 3], center=true);
+        translate([5, mirror_factor * rozchod_polovina * 0.6, vyska * 0.4])
+            cube([5, 10, 3], center=true);
     }
 
     // Vidlice pro kolo
-    translate([mirror_factor * rozchod_polovina, 10, prumer_kola/2])
+    translate([10, mirror_factor * rozchod_polovina, prumer_kola/2])
         vidlice_kola();
 }
 

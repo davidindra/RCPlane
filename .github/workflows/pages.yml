@@ -38,6 +38,10 @@ jobs:
       - name: Install PDF generation dependencies
         run: pip install Pillow reportlab
 
+      - name: Generate STL files
+        run: bash models/build_stl.sh
+        continue-on-error: true
+
       - name: Generate PDF catalogs
         run: bash models/build_pdf.sh
         continue-on-error: true

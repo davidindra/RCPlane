@@ -1,6 +1,7 @@
 # Generované soubory – vznikají za buildu, nepatří do repozitáře
 models/renders/
 models/pdf/
+models/**/*.stl
 
 # Python
 __pycache__/

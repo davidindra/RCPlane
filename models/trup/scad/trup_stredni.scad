@@ -30,6 +30,10 @@ module stredni_trup() {
             translate([200, y * 40, vyska/2 - 10])
                 cube([80, 4, 25]);
         }
+
+        // Otvor pro kryt elektroniky (nahore)
+        translate([320, 0, vyska/2 - tl + 0.1])
+            cube([120, 100, tl + 1], center=true);
     }
 
     // Dovetail female - predni konec
@@ -50,12 +54,6 @@ module stredni_trup() {
     for (x = [50, 150, 250, 350, 450]) {
         translate([x, 0, 0])
             uchyt_tyce();
-    }
-
-    // Kolejnice pro nakladova dvirka
-    for (y = [-1, 1]) {
-        translate([0, y * (nakl_sirka/2 + 2), vyska/2 - 5])
-            cube([nakl_delka + 20, 3, 3]);
     }
 }
 

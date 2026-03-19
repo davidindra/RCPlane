@@ -17,8 +17,10 @@ trup_vyska = 100;
 trup_tl = 2.0;
 
 // Z souradnice vnejsiho povrchu ovalu pri dane Y
+// Oval: (Z/(sirka/2))^2 + (Y/(vyska/2))^2 = 1
+// → Z = (sirka/2) * sqrt(1 - (Y/(vyska/2))^2)
 function povrch_z(y) =
-    (trup_vyska/2) * sqrt(max(0, 1 - pow(y / (trup_sirka/2), 2)));
+    (trup_sirka/2) * sqrt(max(0, 1 - pow(y / (trup_vyska/2), 2)));
 
 module dvirka() {
     difference() {
@@ -27,13 +29,14 @@ module dvirka() {
             dvirka_panel();
 
             // Panty (2 kusy na jedne strane)
+            // Y musi byt uvnitr trupu (max ±trup_vyska/2 = ±50)
             for (x = [-60, 60]) {
-                pant_na_trupu(x, -sirka/2 + 5);
+                pant_na_trupu(x, -(trup_vyska/2 - 5));
             }
 
             // Push-to-open zajisteni (protejsi strana)
             for (x = [-80, 0, 80]) {
-                clip_na_trupu(x, sirka/2 - 5);
+                clip_na_trupu(x, trup_vyska/2 - 5);
             }
         }
 
@@ -58,9 +61,9 @@ module dvirka_panel() {
                 linear_extrude(delka + 2, center=true)
                     oval_profile(trup_sirka - 2*tl, trup_vyska - 2*tl);
         }
-        // Omezeni na horni cast v sirce dvirek
-        translate([0, 0, trup_vyska/2])
-            cube([delka, sirka, trup_vyska], center=true);
+        // Omezeni na horni cast trupu (Z=30..110, efektivne Z=30..70)
+        translate([0, 0, trup_sirka/2])
+            cube([delka, sirka, 80], center=true);
     }
 
     // Vnitrni tesnici lem
@@ -73,8 +76,8 @@ module dvirka_panel() {
                 linear_extrude(delka, center=true)
                     oval_profile(trup_sirka - 2*tl - 4, trup_vyska - 2*tl - 4);
         }
-        translate([0, 0, trup_vyska/2])
-            cube([delka - 4, sirka - 4, trup_vyska], center=true);
+        translate([0, 0, trup_sirka/2])
+            cube([delka - 4, sirka - 4, 80], center=true);
     }
 }
 

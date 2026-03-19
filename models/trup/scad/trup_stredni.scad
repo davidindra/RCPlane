@@ -22,8 +22,9 @@ module stredni_trup() {
         trup_plast();
 
         // Otvor pro nakladova dvirka (nahore)
-        translate([125, 0, vyska/2 - tl + 0.1])
-            cube([nakl_delka, nakl_sirka, tl + 1], center=true);
+        // Shell top is at Z=sirka/2=70, cut top strip of shell
+        translate([125, 0, sirka/2])
+            cube([nakl_delka + 0.4, nakl_sirka + 0.4, 80], center=true);
 
         // Uchyt kridla - sloty na hornich stranach
         for (y = [-1, 1]) {
@@ -32,8 +33,8 @@ module stredni_trup() {
         }
 
         // Otvor pro kryt elektroniky (nahore)
-        translate([320, 0, vyska/2 - tl + 0.1])
-            cube([120, 100, tl + 1], center=true);
+        translate([320, 0, sirka/2])
+            cube([120.4, 100.4, 80], center=true);
     }
 
     // Dovetail female - predni konec

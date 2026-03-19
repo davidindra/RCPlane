@@ -36,13 +36,13 @@ module kryt_elektroniky() {
 
         // Ventilacni otvory na bocich
         for (x = [-30, 0, 30]) {
-            translate([x, sirka/2 - 1, trup_vyska/2 + nadvyseni/2])
+            translate([x, sirka/2 - 1, trup_sirka/2 + nadvyseni/2])
                 rotate([90, 0, 0])
                     ventilacni_mrizka();
         }
 
         // Pruchod pro kabely (spodek)
-        translate([delka/2 - 15, 0, trup_vyska/2 - trup_tl])
+        translate([delka/2 - 15, 0, trup_sirka/2 - trup_tl])
             hull() {
                 cylinder(d=8, h=trup_tl + 4);
                 translate([10, 0, 0])
@@ -77,16 +77,17 @@ module blister_shape(inset) {
             linear_extrude(delka - 2*inset, center=true)
                 oval_profile(a_extra, b_extra);
 
-        // Omezeni na oblast krytu (nad osou trupu, v sirce krytu)
-        translate([0, 0, trup_vyska])
+        // Omezeni na horni cast trupu (Z=30..110)
+        translate([0, 0, trup_sirka/2])
             cube([delka - 2*inset, sirka - 2*inset,
-                  2 * trup_vyska], center=true);
+                  80], center=true);
     }
 }
 
 module montazni_usko_na_trupu(px, py) {
     // Z souradnice vnejsiho povrchu trupu
-    zs = (trup_vyska/2) * sqrt(max(0, 1 - pow(py / (trup_sirka/2), 2)));
+    // Oval: (Z/(sirka/2))^2 + (Y/(vyska/2))^2 = 1
+    zs = (trup_sirka/2) * sqrt(max(0, 1 - pow(py / (trup_vyska/2), 2)));
 
     translate([px, py, zs]) {
         difference() {

@@ -108,9 +108,12 @@ module kridlo_koncovy() {
             translate([x1, mirror_factor * (delka + 1), z1]) sphere(d=nosnik_prumer);
         }
 
-        // Otvor pro servo kridleka
-        translate([hloubka_zacatek * 0.7, mirror_factor * 80, mirror_factor * 80 * sin(vzepeti)])
-            cube([30, 20, 15], center=true);
+        // Otvor pro servo kridleka - otevreny shora (servo vlozeno pred uzavrenim horni casti)
+        let(
+            h_sv = hloubka_zacatek + (hloubka_konec - hloubka_zacatek) * 80 / delka,
+            dz   = mirror_factor * 80 * sin(vzepeti)
+        ) translate([hloubka_zacatek * 0.7 - 15, mirror_factor * 80 - 10, dz + tl_potah + 1])
+            cube([30, 20, h_sv * 0.052 + 10]);
     }
 
     // Integrovana zebra

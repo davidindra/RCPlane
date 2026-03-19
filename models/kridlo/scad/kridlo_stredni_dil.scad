@@ -97,9 +97,13 @@ module kridlo_stredni() {
             translate([x1, mirror_factor * (delka + 1), z1]) sphere(d=nosnik_prumer);
         }
 
-        // Otvor pro servo kridleka (ve vnejsi casti)
-        translate([hloubka_konec * 0.7, mirror_factor * (delka - 50), mirror_factor * (delka - 50) * sin(vzepeti)])
-            cube([30, 20, 15], center=true);
+        // Otvor pro servo kridleka - otevreny shora (servo vlozeno pred uzavrenim horni casti)
+        // Clark-Y horni plocha na 70% tivy ~ 5.2% tivy => hloubka vyrezu = h*0.052 + rezerva
+        let(
+            h_sv = hloubka_zacatek + (hloubka_konec - hloubka_zacatek) * (delka - 50) / delka,
+            dz   = mirror_factor * (delka - 50) * sin(vzepeti)
+        ) translate([hloubka_konec * 0.7 - 15, mirror_factor * (delka - 50) - 10, dz + tl_potah + 1])
+            cube([30, 20, h_sv * 0.052 + 10]);
     }
 
     // Integrovana zebra

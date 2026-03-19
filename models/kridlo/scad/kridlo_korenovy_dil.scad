@@ -64,10 +64,17 @@ module kridlo_korenovy() {
                             clark_y_profile(hloubka_konec);
         }
 
-        // Otvor pro karbonovy nosnik prochazejici celym kridlem
-        translate([hloubka_koren * pozice_nosnik, -10, hloubka_koren * 0.04])
-            rotate([-90 + vzepeti, 0, 0])
-                cylinder(d=nosnik_prumer, h=delka + 20);
+        // Otvor pro karbonovy nosnik - hull po skutecne ose nosníku (koriguje zeuzeni a vzepeti)
+        let(
+            x0 = hloubka_koren * pozice_nosnik,
+            z0 = hloubka_koren * 0.04,
+            // zkrouceni = 0 => cos=1, sin=0
+            x1 = hloubka_konec * pozice_nosnik,
+            z1 = hloubka_konec * 0.04 + mirror_factor * delka * sin(vzepeti)
+        ) hull() {
+            translate([x0, mirror_factor * (-1),        z0]) sphere(d=nosnik_prumer);
+            translate([x1, mirror_factor * (delka + 1), z1]) sphere(d=nosnik_prumer);
+        }
     }
 
     // Integrovana zebra (3 kusy)

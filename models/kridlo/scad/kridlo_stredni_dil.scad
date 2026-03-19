@@ -83,10 +83,19 @@ module kridlo_stredni() {
             }
         }
 
-        // Otvor pro nosnik
-        translate([hloubka_zacatek * pozice_nosnik, -10, hloubka_zacatek * 0.04])
-            rotate([-90 + vzepeti, 0, 0])
-                cylinder(d=nosnik_prumer, h=delka + 20);
+        // Otvor pro nosnik - hull po skutecne ose nosníku (koriguje zkrouceni a zeuzeni profilu)
+        let(
+            xp0 = hloubka_zacatek * pozice_nosnik, yp0 = hloubka_zacatek * 0.04,
+            xp1 = hloubka_konec   * pozice_nosnik, yp1 = hloubka_konec   * 0.04,
+            x0 = xp0 * cos(zkrouceni_zac) - yp0 * sin(zkrouceni_zac),
+            z0 = xp0 * sin(zkrouceni_zac) + yp0 * cos(zkrouceni_zac),
+            x1 = xp1 * cos(zkrouceni_kon) - yp1 * sin(zkrouceni_kon),
+            z1 = xp1 * sin(zkrouceni_kon) + yp1 * cos(zkrouceni_kon)
+                 + mirror_factor * delka * sin(vzepeti)
+        ) hull() {
+            translate([x0, mirror_factor * (-1),        z0]) sphere(d=nosnik_prumer);
+            translate([x1, mirror_factor * (delka + 1), z1]) sphere(d=nosnik_prumer);
+        }
 
         // Otvor pro servo kridleka (ve vnejsi casti)
         translate([hloubka_konec * 0.7, mirror_factor * (delka - 50), mirror_factor * (delka - 50) * sin(vzepeti)])

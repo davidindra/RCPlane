@@ -26,8 +26,8 @@ C_DOPLNKY  = "#ffd600";
 color(C_TRUP) translate([  0,  0,  0]) import("trup/trup_predni.stl");
 color(C_TRUP) translate([350,  0,  0]) import("trup/trup_stredni.stl");
 color(C_TRUP) translate([850,  0,  0]) import("trup/trup_zadni.stl");
-color(C_TRUP) translate([475,  0, 51]) import("trup/nakladovy_prostor_dvirka.stl");
-color(C_TRUP) translate([670,  0, 50]) import("trup/kryt_elektroniky.stl");
+color(C_TRUP) translate([475,  0,  0]) import("trup/nakladovy_prostor_dvirka.stl");
+color(C_TRUP) translate([670,  0,  0]) import("trup/kryt_elektroniky.stl");
 
 // ── Křídlo – levá strana ──────────────────────────────────────────────────
 color(C_KRIDLO) translate([WING_X,             0, WING_Z0        ]) import("kridlo/kridlo_korenovy_dil_L.stl");

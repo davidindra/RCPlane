@@ -42,7 +42,8 @@ models/
     ├── drzak_motoru.stl
     ├── drzak_serva.stl
     ├── voditko_tahu.stl
-    └── krytka_konektoru.stl
+    ├── krytka_konektoru.stl
+    └── servo_mount_kormidla.stl
 ```
 
 ## Parametry 3D tisku
@@ -100,18 +101,44 @@ models/
 1. Sestavte žebra na karbónový nosník — začněte od kořene
 2. Přilepte žebra epoxidem v přesných pozicích (viz výkres)
 3. Nalepte spodní potahové díly na žebra
-4. Vložte serva pro křidélka do připravených otvorů ve vnější části křídla
-5. Protáhněte táhla a kabely serv
-6. Přilepte horní potahové díly
-7. Připevněte koncové oblouky (wingtips)
+4. **Instalace serva křidélka** (před uzavřením horní části):
+   - Servo MG90S vložte shora do výřezu ve střední sekci křídla (30 × 20 mm, hloubka 22 mm)
+   - Výřez je umístěn při 70 % hloubky profilu (X ≈ 168 mm od náběžné hrany), 300 mm od kořene střední sekce
+   - Servo orientujte tak, aby hřídel (páka) směřovala k odtokové hraně (ke křidélku)
+   - Kabel serva veďte skrz odlehčovací otvory v žebrech (ø10–12 mm při 55 % hloubky profilu)
+   - Před slepením horního potahu kabel vyveďte k nosníku a dál ke kořeni křídla
+   - Servo fixujte kapkou CA lepidla nebo epoxidu po bocích těla serva
+5. Protáhněte táhla a kabely serv skrz otvory v žebrech ke kořeni
+6. **Připojení táhla křidélka**:
+   - Táhlo (ocelový drátek ø1,5 mm v bowdenu) připojte k páce serva přes očko na servu
+   - Druhý konec táhla připojte k páce křidélka vzdálené cca 18 mm od osy kloubu
+   - Délka táhla: nastavte tak, aby křidélko bylo v neutrální poloze při středu serva
+7. Přilepte horní potahové díly epoxidem — uzavřete výřez nad servem
+8. Připevněte koncové oblouky (wingtips)
 
 ### Fáze 4: Montáž ocasních ploch
 
 1. Nasaďte VOP a SOP na karbónovou tyč procházející zadní sekcí trupu
-2. Přilepte epoxidem
-3. Namontujte panty kormidel (výškové a směrové)
-4. Nainstalujte serva pro kormidla
-5. Připojte táhla ke kormidlům
+2. Přilepte epoxidem, zkontrolujte pravoúhlost (VOP ⊥ SOP)
+3. Namontujte panty kormidel:
+   - Vsuňte ø2 mm kolíky do připravených otvorů na náběžné hraně výškovky/směrovky
+   - Kolíky zajistěte kapkou CA lepidla z vnější strany (ne na ose otáčení)
+4. **Instalace serv kormidel** (před slepením střední a zadní sekce trupu):
+   - Vložte `servo_mount_kormidla` (3D tištěný díl) do zadní sekce trupu otvorem vpředu
+   - Umístění: X ≈ 320–340 mm od přední strany `trup_zadni`
+   - Desku `servo_mount_kormidla` epoxidujte na vnitřní stěnu spodní části trupu
+   - Vložte servo výškovky do pravé pozice (Y > 0), servo směrovky do levé (Y < 0)
+   - Serva fixujte v drženích epoxidem nebo stahovacím páskem skrz otvory v bočnicích
+5. **Vedení táhel kormidel**:
+   - Instalujte bowdenová průchodky `voditko_tahu` (3D tisk) do ø4 mm otvorů v zadní sekci (X = 410, 440, 470 mm)
+   - Protáhněte ocelový drátek ø1,2–1,5 mm skrz průchodku a připojte ke kormidlovým páčkám
+   - Druhý konec drátku připojte k páce příslušného serva
+6. Spojte střední a zadní sekci trupu dovetail spojem + epoxid
+7. **Nastavení neutrální polohy kormidel**:
+   - Nastavte serva na střed (1500 μs PWM signál)
+   - Výškovka: 0° výchylky (rovnoběžně s VOP profilem)
+   - Směrovka: 0° výchylky (rovnoběžně s SOP profilem)
+   - Délky táhel seřiďte přes nastavovací vidličky (clevisy)
 
 ### Fáze 5: Podvozek
 
@@ -154,3 +181,136 @@ Viz [Dokumentace elektroniky](../elektronika/README.md)
 - Digitální váha (přesnost 1 g)
 - Posuvné měřítko
 - Pravítko 1 m
+
+## Serva — montáž a zapojení
+
+### Specifikace serv
+
+Všechna serva jsou **MG90S** (micro servo 9g, kovové převody):
+
+| Parametr | Hodnota |
+|---|---|
+| Rozměry těla | 22,8 × 12,2 × 22,5 mm (bez hřídele) |
+| Délka incl. hřídel | 28,5 mm |
+| Hmotnost | 13,4 g |
+| Napájení | 5 V z BEC |
+| Točivý moment | 2,2 kg·cm @ 4,8 V |
+
+> **Proč MG90S a ne větší servo?** Výřez pro servo v křídle (30 × 20 × 22 mm) je rozměrově přesně dimenzován pro micro servo třídy 9g. Větší servo (MG996R: 40,7 × 19,7 × 42,9 mm) by se do výřezu absolutně nevešlo. Točivý moment 2,2 kg·cm je pro tento letoun při cestovní rychlosti 60 km/h dostatečný (výpočtová potřeba cca 0,9–1,2 kg·cm).
+
+### Montáž serva křidélka
+
+```
+Pohled shora na střední sekci křídla (L):
+                        Náběžná hrana
+    ←─────────── 168 mm ────────────→
+    ┌──────────────────────────────────────────────────┐
+    │                    ┌──────┐                      │
+    │                    │SERVO │←── výřez 30×20 mm    │
+    │                    │MG90S │    při 300 mm od    │
+    │                    └──────┘    kořene            │
+    │                       │↑ hřídel k odtokové hraně│
+    └──────────────────────────────────────────────────┘
+                        Odtoková hrana
+```
+
+**Postup**:
+1. Tisk `kridlo_stredni_dil` obsahuje otevřený výřez v horní ploše (šablona pro otevřený výřez se automaticky odečte při tisku)
+2. Vložte MG90S tělem dolů do výřezu, hřídel nahoře
+3. Táhlo ke křidélku: bowden vedený žebry ke kořeni, pak skrz trup na ESP32
+4. Výřez po instalaci přikryjte páskou nebo tištěným krytem (volitelně)
+
+**Délka servoramene**: použijte rameno 15–20 mm pro výchylku křidélka ±20°.
+
+### Montáž serv kormidel
+
+Serva pro výškovku a směrovku jsou umístěna uvnitř `trup_zadni` na 3D tištěné montážní desce `servo_mount_kormidla`.
+
+```
+Průřez zadní sekcí trupu (pohled zepředu):
+        ┌─────────────────────────────┐
+        │     ↑ Z (nahoru)            │
+        │                             │
+        │   ┌────────┐ ┌────────┐    │
+        │   │VÝŠK.   │ │SMÉR.   │    │
+        │   │SERVO   │ │SERVO   │    │
+        │   │(Y>0)   │ │(Y<0)   │    │
+        │   └────────┘ └────────┘    │
+        │      servo_mount_kormidla   │
+        │                             │
+        └─────────────────────────────┘
+              Y ─→
+```
+
+**Umístění desky `servo_mount_kormidla`**:
+- X ≈ 320–340 mm od přední strany `trup_zadni`
+- Deska leží na vnitřní podlaze trupu (spodní stěna)
+- Šířka desky: 55 mm, vejde se do vnitřního prostoru (~75 mm při X=330)
+- Fixace: epoxid na vnitřní stěnu + 2× M3×10 šroub skrz otvory v desce
+
+**Orientace serv**:
+- Hřídel serva směřuje kolmo nahoru (+Z)
+- Servorameno otáčí v rovině X-Y
+- Táhlo ke kormidlu vede od ramene serva skrz průchodku `voditko_tahu` (X = 410–470 mm) ke kormidlové páčce
+
+**Délky táhel ke kormidlům**:
+- Výškovka: ~280 mm (od serva do středu servoramene ke spojení s páčkou výškovky)
+- Směrovka: ~260 mm (analogicky)
+
+### Montáž serva předního kola
+
+Servo předního kola je umístěno v přední sekci trupu, spojeno s otočnou vidlicí `predni_vidlice`:
+
+```
+Průřez přední sekcí (boční pohled):
+    ←── ~220 mm od nosu ──→
+    ┌──────────────────────────────────────────────┐
+    │              ┌──────┐                        │
+    │              │SERVO │── táhlo ──► páka vidlice│
+    │              │MG90S │                        │
+    │              └──────┘                        │
+    └──────────────────────────────────────────────┘
+          ↑motor                    ↑ přední kolo
+```
+
+**Postup**:
+1. Servo umístěte při X ≈ 220–240 mm od nosu v `trup_predni`
+2. Servo přichyťte na `drzak_serva` (3D tistěný díl) epoxidem k vnitřní stěně
+3. Táhlo (karbonová tyčka ø2 mm, délka ~80 mm) od páky serva ke `paka_servo()` na `predni_vidlice`
+4. Páka serva: osa točení je pivot vidlice, rameno 18 mm → výchylka řízení ±25°
+
+### Elektrické zapojení serv
+
+**Schéma zapojení** (BEC → Serva → ESP32):
+
+```
+ESC BEC 5V/3A
+    │
+    ├──► Servo křidélko L ──► GPIO 12 (PWM)
+    ├──► Servo křidélko P ──► GPIO 13 (PWM)
+    ├──► Servo výškovky   ──► GPIO 14 (PWM)
+    ├──► Servo směrovky   ──► GPIO 25 (PWM)
+    └──► Servo předního kola ─► GPIO 26 (PWM)
+```
+
+**Délky kabelů** (orientační):
+- Křidélko: ~400 mm (vychází z výřezu v křídle, vede skrz kořen ke konektoru v trupu)
+- Výškovka / Směrovka: ~250 mm (z `servo_mount_kormidla` přes průchodku do střední sekce)
+- Přední kolo: ~300 mm (z přední sekce ke konektoru v střední sekci)
+
+**Konektory**: Všechna serva MG90S mají standardní 3-pin JST (hnědá-GND, červená-VCC, oranžová-PWM). Pro průchod kabelu skrz přepážky trupu doporučujeme moci konektor odpojit (prodlužovací kabely 30 cm s JR/Futaba konektorem).
+
+### Nastavení PWM serv
+
+ESP32 generuje PWM signál 50 Hz s pulzy:
+- **1000 μs** = -90° (krajní poloha)
+- **1500 μs** = 0° (střed / neutrální)
+- **2000 μs** = +90° (druhá krajní poloha)
+
+Doporučené výchylky ovládacích ploch:
+| Plocha | Výchylka nahoru/dolů |
+|---|---|
+| Křidélka | ±20° |
+| Výškovka | +25° / −20° |
+| Směrovka | ±25° |
+| Přední kolo | ±30° |

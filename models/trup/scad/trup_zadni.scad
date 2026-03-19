@@ -44,7 +44,8 @@ module zadni_trup() {
             translate([delka - 60, y * 10, -1.5])
                 cube([50, sirka_zadni, 3]);
         }
-        // Otvor pro tazne lanko serva
+        // Otvory pro ovladaci tycky/lanka serv (elevator + rudder)
+        // Serva umistena na servo_mount_kormidla (3D tistený dil) pri X~330mm od predniho konce teto sekce
         for (i = [0:2]) {
             translate([delka - 80 - i*30, 0, vyska_zadni/2 + 5])
                 rotate([90, 0, 0])

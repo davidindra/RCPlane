@@ -108,7 +108,8 @@ module kridlo_koncovy() {
             translate([x1, mirror_factor * (delka + 1), z1]) sphere(d=nosnik_prumer);
         }
 
-        // Otvor pro servo kridleka - otevreny shora (servo vlozeno pred uzavrenim horni casti)
+        // Otvor pro servo kridleka MG90S (22.8x12.2mm) - otevreny shora, servo vlozeno pred lepenim horni casti
+        // Vymery kapsy: 30mm (tiva) x 20mm (rozpal) x ~22mm (hloubka)
         let(
             h_sv = hloubka_zacatek + (hloubka_konec - hloubka_zacatek) * 80 / delka,
             dz   = mirror_factor * 80 * sin(vzepeti)

@@ -69,6 +69,7 @@ run_export "doplnky/scad/drzak_motoru.scad" "doplnky/drzak_motoru.stl"
 run_export "doplnky/scad/drzak_serva.scad" "doplnky/drzak_serva.stl"
 run_export "doplnky/scad/voditko_tahu.scad" "doplnky/voditko_tahu.stl"
 run_export "doplnky/scad/krytka_konektoru.scad" "doplnky/krytka_konektoru.stl"
+run_export "doplnky/scad/servo_mount_kormidla.scad" "doplnky/servo_mount_kormidla.stl"
 
 echo ""
 echo "=== Hotovo! ==="

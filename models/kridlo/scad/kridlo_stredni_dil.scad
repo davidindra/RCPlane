@@ -97,7 +97,8 @@ module kridlo_stredni() {
             translate([x1, mirror_factor * (delka + 1), z1]) sphere(d=nosnik_prumer);
         }
 
-        // Otvor pro servo kridleka - otevreny shora (servo vlozeno pred uzavrenim horni casti)
+        // Otvor pro servo kridleka MG90S (22.8x12.2mm) - otevreny shora, servo vlozeno pred lepenim horni casti
+        // Vymery kapsy: 30mm (tiva) x 20mm (rozpal) x ~22mm (hloubka)
         // Clark-Y horni plocha na 70% tivy ~ 5.2% tivy => hloubka vyrezu = h*0.052 + rezerva
         let(
             h_sv = hloubka_zacatek + (hloubka_konec - hloubka_zacatek) * (delka - 50) / delka,

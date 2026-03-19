@@ -60,6 +60,7 @@ MODELS = [
     ("doplnky/scad/drzak_serva.scad", "drzak_serva", []),
     ("doplnky/scad/voditko_tahu.scad", "voditko_tahu", []),
     ("doplnky/scad/krytka_konektoru.scad", "krytka_konektoru", []),
+    ("doplnky/scad/servo_mount_kormidla.scad", "servo_mount_kormidla", []),
     # === KOMPLETNÍ SESTAVA ===
     # use_render=False: sestava importuje hotové STL bez CSG operací –
     # preview (OpenGL) mode je mnohem rychlejší a zobrazuje barvy správně
@@ -94,7 +95,7 @@ GROUPS = {
     "doplnky": {
         "title": "Doplňky (Accessories)",
         "models": ["drzak_motoru", "drzak_serva",
-                    "voditko_tahu", "krytka_konektoru"],
+                    "voditko_tahu", "krytka_konektoru", "servo_mount_kormidla"],
     },
     "sestava": {
         "title": "Kompletní sestava",

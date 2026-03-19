@@ -65,10 +65,10 @@ Elektronický systém dronu zajišťuje pohon, řízení, komunikaci a navigaci.
 
 | Pozice | Model | Specifikace | Počet |
 |---|---|---|---|
-| Křidélka | MG996R | Točivý moment 11 kg·cm, kovové převody | 2 |
-| Výškové kormidlo | SG90 (MG) | Točivý moment 2,5 kg·cm, kovové převody | 1 |
-| Směrové kormidlo | SG90 (MG) | Točivý moment 2,5 kg·cm, kovové převody | 1 |
-| Přední kolo | SG90 (MG) | Točivý moment 2,5 kg·cm, kovové převody | 1 |
+| Křidélka | MG90S | Točivý moment 2,2 kg·cm @ 4,8 V, kovové převody | 2 |
+| Výškové kormidlo | MG90S | Točivý moment 2,2 kg·cm @ 4,8 V, kovové převody | 1 |
+| Směrové kormidlo | MG90S | Točivý moment 2,2 kg·cm @ 4,8 V, kovové převody | 1 |
+| Přední kolo | MG90S | Točivý moment 2,2 kg·cm @ 4,8 V, kovové převody | 1 |
 
 ### Napájení
 
@@ -82,7 +82,7 @@ Elektronický systém dronu zajišťuje pohon, řízení, komunikaci a navigaci.
 | Hmotnost baterie | ~900 g (18 článků × ~50 g) |
 | Max. proud článků | 24 A continuous (3P × 8 A) |
 | BMS | 6S BMS deska, 40 A continuous, balancování |
-| BEC (serva) | Integrován v ESC: 5V / 3A |
+| BEC (serva) | Integrován v ESC: 5V / 3A (postačuje pro 5× MG90S, max. špičkový odběr ~1,8 A) |
 | BEC (elektronika) | Step-down DC-DC: 5V / 2A (pro ESP32 a moduly) |
 
 > **Poznámka k BMS:** Motor SunnySky X2820 při plném výkonu 800 W a napětí 22,2 V odebírá ~36 A. BMS musí být dimenzován minimálně na 40 A continuous, aby napájecí větev podporovala plný výkon motoru. Při cestovním letu je odběr pouze ~6–7 A, takže 40A BMS poskytuje dostatečnou rezervu.
@@ -217,3 +217,57 @@ Baterie 6S3P Li-ion (22,2V, 10 500 mAh)
 6. **ESC** umístěte v přední sekci trupu, blízko motoru, zajistěte odvod tepla
 7. Všechny konektory zajistěte proti rozpojení vibracemi (lepidlo, stahovací pásky)
 8. Kabely veďte po stranách trupu, fixujte stahovacími páskami
+
+## Serva — technické specifikace
+
+### Rozměry a parametry MG90S
+
+| Parametr | Hodnota |
+|---|---|
+| Rozměry těla (D × Š × V) | 22,8 × 12,2 × 28,5 mm (včetně hřídele) |
+| Rozměry těla bez hřídele | 22,8 × 12,2 × 22,5 mm |
+| Hmotnost | 13,4 g |
+| Napájecí napětí | 4,8–6,0 V |
+| Točivý moment | 2,2 kg·cm @ 4,8 V / 2,5 kg·cm @ 6,0 V |
+| Klidový odběr | ~6 mA |
+| Odběr bez zátěže | ~120 mA |
+| Stallový odběr | ~360 mA |
+| Úhel natočení | 0°–180° |
+| Délka spojovacích ramen (horn) | 11–25 mm (sada 4 ramen) |
+
+> **Poznámka k BEC:** Při 5 servech MG90S v klidovém stavu: 5 × 6 mA = 30 mA. Při maximální zátěži všech 5 serv současně: 5 × 360 mA = 1,8 A. BEC 5V/3A = 3 A — dostatečná rezerva 1,2 A.
+
+### Zapojení konektorů serv
+
+Všechna serva MG90S používají standardní 3-pinový konektor JST-PH nebo dupont 2,54 mm:
+
+| Barva vodiče | Funkce | Připojení |
+|---|---|---|
+| Hnědá / Černá | GND (−) | Záporný pól BEC (GND) |
+| Červená | VCC (+5 V) | Kladný pól BEC (+5 V) |
+| Oranžová / Žlutá / Bílá | Signál (PWM) | GPIO pin ESP32 |
+
+**Pořadí pinů na konektoru** (pohled ze strany konektoru): GND – VCC – Signal
+
+### Umístění serv v konstrukci
+
+| Servo | Umístění | GPIO | Délka kabelu |
+|---|---|---|---|
+| Křidélko levé | Uvnitř `kridlo_stredni_dil_L` nebo `kridlo_koncovy_dil_L` (výřez 30×20 mm při 300 mm od kořene střed. dílu) | GPIO 12 | ~400 mm (táhne se k trupu přes kořen) |
+| Křidélko pravé | Uvnitř `kridlo_stredni_dil_P` nebo `kridlo_koncovy_dil_P` | GPIO 13 | ~400 mm |
+| Výškové kormidlo | Uvnitř `trup_zadni`, X ≈ 320–340 mm od přední strany zadní sekce, na `servo_mount_kormidla` | GPIO 14 | ~200 mm (k řídící jednotce přes střední sekci) |
+| Směrové kormidlo | Uvnitř `trup_zadni`, X ≈ 320–340 mm od přední strany zadní sekce, na `servo_mount_kormidla` | GPIO 25 | ~200 mm |
+| Přední kolo | Uvnitř `trup_predni`, X ≈ 220–240 mm od nosu (přichyceno za přední podvozek) | GPIO 26 | ~300 mm |
+
+### Táhla serv
+
+Táhla (push-rody) jsou realizovány dvěma způsoby:
+- **Vnitřní táhlo**: ocelový drátek ø1,2–1,5 mm v bowdenovém pouzdru (viz `voditko_tahu.stl`)
+- **Tyčové táhlo**: karbonová tyčka ø2 mm s očky na obou koncích (clevis)
+
+| Servo | Typ táhla | Délka |
+|---|---|---|
+| Křidélka | Ocelový drátek ø1,5 mm v bowdenu, vedený přes kořen křídla | ~500 mm |
+| Výškové kormidlo | Ocelový drátek ø1,5 mm, veden průchodkami v zadní sekci | ~280 mm |
+| Směrové kormidlo | Ocelový drátek ø1,5 mm, veden průchodkami v zadní sekci | ~260 mm |
+| Přední kolo | Karbonová tyčka ø2 mm, přímé táhlo | ~80 mm |
